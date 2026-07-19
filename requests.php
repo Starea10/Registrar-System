@@ -76,7 +76,7 @@ if (isset($_POST['delete']) && ($_SESSION['role'] === 'admin' || $_SESSION['role
     $request_id = (int)$_POST['request_id'];
     
     // Only allow deletion of archived items
-    $check_sql = "SELECT id, document_path FROM requests WHERE id = $request_id AND is_archived = 1";
+    $check_sql = "SELECT id, document_path FROM requests WHERE id = $request_id";
     $check_result = $conn->query($check_sql);
     
     if ($check_result && $check_result->num_rows > 0) {
@@ -86,10 +86,6 @@ if (isset($_POST['delete']) && ($_SESSION['role'] === 'admin' || $_SESSION['role
         $conn->begin_transaction();
         
         try {
-            // Delete related records from archive_history
-            $sql = "DELETE FROM archive_history WHERE request_id = $request_id";
-            $conn->query($sql);
-            
             // Delete the request
             $sql = "DELETE FROM requests WHERE id = $request_id";
             $conn->query($sql);
@@ -107,13 +103,13 @@ if (isset($_POST['delete']) && ($_SESSION['role'] === 'admin' || $_SESSION['role
             // Commit the transaction
             $conn->commit();
             
-            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=archived');
+            header('Location: ' . $_SERVER['PHP_SELF']);
             exit();
         } catch (Exception $e) {
             // Rollback on error
             $conn->rollback();
             $_SESSION['error'] = "Error deleting request: " . $e->getMessage();
-            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=archived');
+            header('Location: ' . $_SERVER['PHP_SELF']);
             exit();
         }
     }
@@ -131,7 +127,7 @@ if (isset($_POST['archive_action']) && ($_SESSION['role'] === 'admin' || $_SESSI
         if ($conn->query($sql)) {
             // Log the archive action
             $sql = "INSERT INTO archive_history (request_id, action, actioned_by) 
-                    VALUES ($request_id, '$action', {$_SESSION['user_id']})";
+                    VALUES ($request_id, 'action', {$_SESSION['user_id']})";
             $conn->query($sql);
             
             // Log in audit trail
@@ -175,7 +171,7 @@ if (isset($_POST['update_status']) && isset($_POST['request_id']) && isset($_POS
                 if ($new_status === 'released') {
                     $log_details .= " and automatically archived";
                     $archive_sql = "INSERT INTO archive_history (request_id, action, actioned_by) 
-                                   VALUES ($request_id, 'auto_archive_on_release', {$_SESSION['user_id']})";
+                                   VALUES ($request_id, 'archived', {$_SESSION['user_id']})";
                     $conn->query($archive_sql);
                 }
                 
@@ -973,6 +969,10 @@ if ($view_released) {
                         <i class="fas fa-list"></i>
                         <span>Requests</span>
                     </a>
+                     <a href="archives.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'archives.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-list"></i>
+                        <span>Archives</span>
+                    </a>
                     <?php if ($_SESSION['role'] === 'admin'): ?>
                     <a href="users.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'users.php' ? 'active' : ''; ?>">
                         <i class="fas fa-users"></i>
@@ -1029,23 +1029,6 @@ if ($view_released) {
                         </button>
                         <?php endif; ?>
                         
-                        <div class="view-buttons">
-                            <?php if ($view_archived || $view_released): ?>
-                            <a href="?" class="btn btn-primary">
-                                <i class="fas fa-list me-2"></i>Active Requests
-                            </a>
-                            <?php endif; ?>
-                            
-                            <a href="?view=archived" 
-                               class="btn <?php echo $view_archived ? 'btn-primary' : 'btn-secondary'; ?>">
-                                <i class="fas fa-archive me-2"></i>Archived
-                            </a>
-                            
-                            <a href="?view=released" 
-                                class="btn <?php echo $view_released ? 'btn-primary' : 'btn-secondary'; ?>">
-                                <i class="fas fa-check-circle me-2"></i>Released Archive
-                            </a>
-                        </div>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -1217,32 +1200,13 @@ if ($view_released) {
                                     <?php endif; ?>
                                     
                                     <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
-                                        <?php if ($view_archived || $view_released): ?>
-                                            <?php if (!$view_released): ?>
-                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal" 
-                                                    data-bs-target="#archiveModal<?php echo $request['id']; ?>"
-                                                    title="Restore Request">
-                                                <i class="fas fa-trash-restore"></i>
-                                            </button>
-                                            <?php else: ?>
-                                            <button class="btn btn-sm btn-secondary" data-bs-toggle="modal"
-                                                    data-bs-target="#editReleasedDateModal<?php echo $request['id']; ?>"
-                                                    title="Edit Released Date">
-                                                <i class="fas fa-calendar-alt"></i>
-                                            </button>
-                                            <?php endif; ?>
+
                                             <button class="btn btn-sm btn-danger" data-bs-toggle="modal" 
                                                     data-bs-target="#deleteModal<?php echo $request['id']; ?>"
                                                     title="Delete Permanently">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        <?php else: ?>
-                                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" 
-                                                    data-bs-target="#archiveModal<?php echo $request['id']; ?>"
-                                                    title="Archive Request">
-                                                <i class="fas fa-archive"></i>
-                                            </button>
-                                        <?php endif; ?>
+
                                     <?php endif; ?>
                                     <?php endif; ?>
                                 </td>
@@ -1432,7 +1396,19 @@ if ($view_released) {
                         <div class="row mb-3">
                             <div class="col-md-8">
                                 <label class="form-label">Program <span class="text-danger">*</span></label>
-                                <input type="text" name="program" class="form-control" required placeholder="Enter program/course">
+                                <select name="program" class="dropdown" required>
+                                    <option value="BSCS">BSCS</option>
+                                    <option value="BSIT">BSIT</option>
+                                    <option value="BSEd-Sci">BSEd-Sci</option>
+                                    <option value="BSEd-Eng">BSEd-Eng</option>
+                                    <option value="BEEd">BEEd</option>
+                                    <option value="BSHM">BSHM</option>
+                                    <option value="BSBA">BSBA</option>
+                                    <option value="BSFAS">BSFAS</option>
+                                    <option value="Seaman Training Course">Seaman Training Course</option>
+                                    <option value="TCP">TCP</option>
+                                    <option value="LSHS">LSHS</option>
+                                </select>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Year of Graduation</label>
@@ -1552,7 +1528,6 @@ if ($view_released) {
     </div>
     <?php endif; ?>
 
-    <?php if ($view_archived || $view_released): ?>
     <div class="modal fade" id="deleteModal<?php echo $request['id']; ?>" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1608,7 +1583,6 @@ if ($view_released) {
             </div>
         </div>
     </div>
-    <?php endif; ?>
     <?php endif; ?>
     <?php endforeach; ?>
     <?php endif; ?>

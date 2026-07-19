@@ -838,6 +838,10 @@ $current_year_released = isset($released_by_year[$selected_year]) ?
                         <i class="fas fa-list"></i>
                         <span>Requests</span>
                     </a>
+                     <a href="archives.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'archives.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-list"></i>
+                        <span>Archives</span>
+                    </a>
                     <a href="users.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'users.php' ? 'active' : ''; ?>">
                         <i class="fas fa-users"></i>
                         <span>Users</span>
@@ -860,41 +864,38 @@ $current_year_released = isset($released_by_year[$selected_year]) ?
             <div class="col-md-10 p-4">
                 <div class="page-header">
                     <h2 class="page-title">Cavite State University - Naic Registrar</h2>
-                    <div class="admin-badge">
-                        <i class="fas fa-shield-alt me-1"></i>Admin Dashboard
-                    </div>
                 </div>
                 
                 <div class="stats-grid">
-                    <div class="stat-card primary">
+                    <div class="stat-card primary clickable" onclick="redirectToRequestPage('')">
                         <div class="stat-icon">
                             <i class="fas fa-file-alt"></i>
                         </div>
                         <h5><i class="fas fa-file-alt me-2"></i>Total Requests</h5>
                         <h3><?php echo number_format($stats['total_requests']); ?></h3>
                     </div>
-                    <div class="stat-card warning">
+                    <div class="stat-card warning clickable" onclick="redirectToRequestPage('pending')">
                         <div class="stat-icon">
                             <i class="fas fa-clock"></i>
                         </div>
                         <h5><i class="fas fa-clock me-2"></i>Pending Requests</h5>
                         <h3><?php echo number_format($stats['pending']); ?></h3>
                     </div>
-                    <div class="stat-card processing">
+                    <div class="stat-card processing clickable" onclick="redirectToRequestPage('processing')">
                         <div class="stat-icon">
                             <i class="fas fa-cog"></i>
                         </div>
                         <h5><i class="fas fa-cog me-2"></i>Processing</h5>
                         <h3><?php echo number_format($stats['processing']); ?></h3>
                     </div>
-                    <div class="stat-card signature">
+                    <div class="stat-card signature clickable" onclick="redirectToRequestPage('for_signature')">
                         <div class="stat-icon">
                             <i class="fas fa-signature"></i>
                         </div>
                         <h5><i class="fas fa-signature me-2"></i>For Signature</h5>
                         <h3><?php echo number_format($stats['for_signature']); ?></h3>
                     </div>
-                    <div class="stat-card for release">
+                    <div class="stat-card for release clickable" onclick="redirectToRequestPage('for_release')">
                         <div class="stat-icon">
                             <i class="fas fa-paper-plane"></i>
                         </div>

@@ -30,8 +30,9 @@ SET time_zone = "+00:00";
 CREATE TABLE `archive_history` (
   `id` int(11) NOT NULL,
   `request_id` int(11) NOT NULL,
-  `action` enum('archived','restored') NOT NULL,
+  `action` enum('archived') NOT NULL,
   `actioned_by` int(11) NOT NULL,
+  `action_created` timestamp NOT NULL,
   `action_date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
