@@ -110,7 +110,6 @@ async function handleStatusUpdate(select) {
         }
     } catch (error) {
         console.error('Status update error:', error);
-        console.log(error);
         showAlert('A network error occurred. Please try again.', 'danger');
         select.value = originalStatus; // Revert on network error
     }
@@ -132,25 +131,6 @@ function restrictToNumbers(input) {
 function toggleCertificationInput() {
     const checkbox = document.getElementById('certification');
     const input = document.getElementById('certification_type');
-    
-    if (checkbox && input) {
-        if (checkbox.checked) {
-            input.style.display = 'block';
-            input.required = true;
-        } else {
-            input.style.display = 'none';
-            input.required = false;
-            input.value = '';
-        }
-    }
-}
-
-/**
- * Toggle others input field visibility
- */
-function toggleOthersInput() {
-    const checkbox = document.getElementById('others');
-    const input = document.getElementById('others_type');
     
     if (checkbox && input) {
         if (checkbox.checked) {
