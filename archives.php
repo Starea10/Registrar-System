@@ -76,7 +76,7 @@ if (isset($_POST['delete']) && ($_SESSION['role'] === 'admin' || $_SESSION['role
     $request_id = (int)$_POST['request_id'];
     
     // Only allow deletion of archived items
-    $check_sql = "SELECT id, document_path FROM requests WHERE id = $request_id AND is_archived = 1";
+    $check_sql = "SELECT id, document_path FROM requests WHERE id = $request_id";
     $check_result = $conn->query($check_sql);
     
     if ($check_result && $check_result->num_rows > 0) {
@@ -86,10 +86,6 @@ if (isset($_POST['delete']) && ($_SESSION['role'] === 'admin' || $_SESSION['role
         $conn->begin_transaction();
         
         try {
-            // Delete related records from archive_history
-            $sql = "DELETE FROM archive_history WHERE request_id = $request_id";
-            $conn->query($sql);
-            
             // Delete the request
             $sql = "DELETE FROM requests WHERE id = $request_id";
             $conn->query($sql);
@@ -107,13 +103,13 @@ if (isset($_POST['delete']) && ($_SESSION['role'] === 'admin' || $_SESSION['role
             // Commit the transaction
             $conn->commit();
             
-            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=archived');
+            header('Location: ' . $_SERVER['PHP_SELF']);
             exit();
         } catch (Exception $e) {
             // Rollback on error
             $conn->rollback();
             $_SESSION['error'] = "Error deleting request: " . $e->getMessage();
-            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=archived');
+            header('Location: ' . $_SERVER['PHP_SELF']);
             exit();
         }
     }
@@ -452,7 +448,7 @@ $total_pages = ceil($total / $per_page);
 
 // Get requests for current page
 $sql = "SELECT r.*, u.username as requester_name 
-        FROM requests r 
+        FROM archive_history r 
         LEFT JOIN users u ON r.requester_id = u.id 
         $where_clause 
         ORDER BY r.created_at DESC 
@@ -469,7 +465,7 @@ if ($requests_result) {
 
 // Get all requests for modals (needed for archive/delete modals)
 $all_requests_sql = "SELECT r.*, u.username as requester_name 
-                     FROM requests r 
+                     FROM archive_history r 
                      LEFT JOIN users u ON r.requester_id = u.id 
                      $where_clause 
                      ORDER BY r.created_at DESC";
@@ -489,117 +485,109 @@ if (isset($_GET['ajax'])) {
         echo '<tr><td colspan="10" class="text-center">No requests found</td></tr>';
     } else {
         foreach ($requests as $request) { ?>
-            <tr>
-                <td><?php echo $request['id']; ?></td>
-                <td><?php echo htmlspecialchars($request['title']); ?></td>
-                <td><?php echo htmlspecialchars($request['student_number']); ?></td>
-                <td><?php echo htmlspecialchars($request['student_name']); ?></td>
-                <td>
-                    <?php if (($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff') && !$view_archived && !$view_released): ?>
-                    <form method="POST" style="display: inline;" class="status-update-form">
-                        <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
-                        <input type="hidden" name="update_status" value="1">
-                        <select name="new_status" class="status-dropdown status-select status-<?php echo $request['status']; ?>" data-original-status="<?php echo $request['status']; ?>">
-                            <option value="pending" <?php echo $request['status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                            <option value="processing" <?php echo $request['status'] === 'processing' ? 'selected' : ''; ?>>Processing</option>
-                            <option value="for_signature" <?php echo $request['status'] === 'for_signature' ? 'selected' : ''; ?>>For Signature</option>
-                            <option value="for_release" <?php echo $request['status'] === 'for_release' ? 'selected' : ''; ?>>For Release</option>
-                            <option value="released" <?php echo $request['status'] === 'released' ? 'selected' : ''; ?>>Released</option>
-                        </select>
-                    </form>
-                    <?php else: ?>
-                    <span class="badge bg-<?php 
-                        echo match($request['status']) {
-                            'pending' => 'warning', 'processing' => 'info', 'for_signature' => 'primary',
-                            'for_release' => 'secondary', 'released' => 'success', default => 'secondary'
-                        };
-                    ?> status-badge">
-                        <?php echo str_replace('_', ' ', $request['status']); ?>
-                    </span>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <?php if (!empty($request['claiming_date'])): ?>
-                        <?php
-                        $claiming_date = new DateTime($request['claiming_date']);
-                        $today = new DateTime(); $today->setTime(0, 0, 0);
-                        $claiming_date_start = clone $claiming_date; $claiming_date_start->setTime(0, 0, 0);
-                        $class = '';
-                        if ($claiming_date_start < $today) { $class = 'claiming-date-overdue'; } 
-                        elseif ($claiming_date_start == $today) { $class = 'claiming-date-today'; } 
-                        else { $class = 'claiming-date-upcoming'; }
-                        ?>
-                        <span class="<?php echo $class; ?>">
-                            <i class="fas fa-calendar-alt me-1"></i>
-                            <?php echo $claiming_date->format('M d, Y'); ?>
-                        </span>
-                    <?php else: ?>
-                        <span class="text-muted">Not scheduled</span>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <?php if (!empty($request['requester_name'])): ?>
-                        <span class="badge bg-info">
-                            <i class="fas fa-user me-1"></i>
-                            <?php echo htmlspecialchars($request['requester_name']); ?>
-                        </span>
-                    <?php else: ?>
-                        <span class="text-muted">Unknown</span>
-                    <?php endif; ?>
-                </td>
-                <td><?php echo date('Y-m-d H:i', strtotime($request['created_at'])); ?></td>
-                <td>
-                    <?php if ($view_released && !empty($request['released_at'])): ?>
-                        <?php echo date('Y-m-d H:i', strtotime($request['released_at'])); ?>
-                    <?php else: ?>
-                        <span class="text-muted">N/A</span>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" 
-                            data-bs-target="#viewRequestModal<?php echo $request['id']; ?>">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
-                    <?php if (!$view_released): ?>
-                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
-                            data-bs-target="#updateClaimingDateModal<?php echo $request['id']; ?>"
-                            title="Update Claiming Date">
-                        <i class="fas fa-calendar-alt"></i>
-                    </button>
-                    <?php endif; ?>
-                    
-                    <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
-                        <?php if ($view_archived || $view_released): ?>
-                            <?php if (!$view_released): ?>
-                            <button class="btn btn-sm btn-success" data-bs-toggle="modal" 
-                                    data-bs-target="#archiveModal<?php echo $request['id']; ?>"
-                                    title="Restore Request">
-                                <i class="fas fa-trash-restore"></i>
-                            </button>
-                            <?php else: ?>
-                            <button class="btn btn-sm btn-secondary" data-bs-toggle="modal"
-                                    data-bs-target="#editReleasedDateModal<?php echo $request['id']; ?>"
-                                    title="Edit Released Date">
-                                <i class="fas fa-calendar-alt"></i>
-                            </button>
-                            <?php endif; ?>
-                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" 
-                                    data-bs-target="#deleteModal<?php echo $request['id']; ?>"
-                                    title="Delete Permanently">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        <?php else: ?>
-                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" 
-                                    data-bs-target="#archiveModal<?php echo $request['id']; ?>"
-                                    title="Archive Request">
-                                <i class="fas fa-archive"></i>
-                            </button>
-                        <?php endif; ?>
-                    <?php endif; ?>
-                    <?php endif; ?>
-                </td>
-            </tr>
+                            <tr>
+                                <td><?php echo $request['id']; ?></td>
+                                <td><?php echo htmlspecialchars($request['title']); ?></td>
+                                <td><?php echo htmlspecialchars($request['student_number']); ?></td>
+                                <td><?php echo htmlspecialchars($request['student_name']); ?></td>
+                                <td>
+                                    <?php if (($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff')): ?>
+                                    <form method="POST" style="display: inline;" class="status-update-form">
+                                        <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
+                                        <input type="hidden" name="update_status" value="1">
+                                        <select name="new_status" class="status-dropdown status-select status-<?php echo $request['status']; ?>" data-original-status="<?php echo $request['status']; ?>">
+                                            <option value="pending" <?php echo $request['status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                                            <option value="processing" <?php echo $request['status'] === 'processing' ? 'selected' : ''; ?>>Processing</option>
+                                            <option value="for_signature" <?php echo $request['status'] === 'for_signature' ? 'selected' : ''; ?>>For Signature</option>
+                                            <option value="for_release" <?php echo $request['status'] === 'for_release' ? 'selected' : ''; ?>>For Release</option>
+                                            <option value="released" <?php echo $request['status'] === 'released' ? 'selected' : ''; ?>>Released</option>
+                                        </select>
+                                    </form>
+                                    <?php else: ?>
+                                    <span class="badge bg-<?php 
+                                        echo match($request['status']) {
+                                            'pending' => 'warning',
+                                            'processing' => 'info',
+                                            'for_signature' => 'primary',
+                                            'for_release' => 'secondary',
+                                            'released' => 'success',
+                                            default => 'secondary'
+                                        };
+                                    ?> status-badge">
+                                        <?php echo str_replace('_', ' ', $request['status']); ?>
+                                    </span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($request['claiming_date'])): ?>
+                                        <?php
+                                        $claiming_date = new DateTime($request['claiming_date']);
+                                        $today = new DateTime();
+                                        $today->setTime(0, 0, 0);
+                                        $claiming_date_start = clone $claiming_date;
+                                        $claiming_date_start->setTime(0, 0, 0);
+                                        
+                                        $class = '';
+                                        if ($claiming_date_start < $today) {
+                                            $class = 'claiming-date-overdue';
+                                        } elseif ($claiming_date_start == $today) {
+                                            $class = 'claiming-date-today';
+                                        } else {
+                                            $class = 'claiming-date-upcoming';
+                                        }
+                                        ?>
+                                        <span class="<?php echo $class; ?>">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            <?php echo $claiming_date->format('M d, Y'); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="text-muted">Not scheduled</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($request['requester_name'])): ?>
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-user me-1"></i>
+                                            <?php echo htmlspecialchars($request['requester_name']); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="text-muted">Unknown</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo date('Y-m-d H:i', strtotime($request['created_at'])); ?></td>
+                                <td>
+                                    <?php if ($view_released && !empty($request['released_at'])): ?>
+                                        <?php echo date('Y-m-d H:i', strtotime($request['released_at'])); ?>
+                                    <?php else: ?>
+                                        <span class="text-muted">N/A</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" 
+                                            data-bs-target="#viewRequestModal<?php echo $request['id']; ?>">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
+                                    <?php if (!$view_released): ?>
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                                            data-bs-target="#updateClaimingDateModal<?php echo $request['id']; ?>"
+                                            title="Update Claiming Date">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </button>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
+
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal<?php echo $request['id']; ?>"
+                                                    title="Delete Permanently">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+
+                                    <?php endif; ?>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
         <?php }
     }
     $table_html = ob_get_clean();
@@ -617,8 +605,9 @@ if (isset($_GET['ajax'])) {
     exit();
 }
 
-// Determine page title based on view
+
 $page_title = 'Archived Requests';
+
 ?>
 
 <!DOCTYPE html>
@@ -1020,8 +1009,546 @@ $page_title = 'Archived Requests';
                     <div>
                         <h2><?php echo $page_title; ?></h2>
                     </div>
-                    <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
-                    <?php endif ?>
+                </div>
+
+                <form class="mb-4" method="GET" onsubmit="return false;"> <?php if ($view_archived): ?>
+                    <input type="hidden" name="view" value="archived">
+                    <?php elseif ($view_released): ?>
+                    <input type="hidden" name="view" value="released">
+                    <?php endif; ?>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" name="search" id="searchInput" class="form-control" placeholder="Search requests..." 
+                                       value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                                <button class="btn btn-outline-secondary" type="submit">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="status" class="form-select" onchange="this.form.submit()">
+                                <option value="">All Status</option>
+                                <?php if (!$view_released): ?>
+                                <option value="pending" <?php echo $status_filter === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                                <option value="processing" <?php echo $status_filter === 'processing' ? 'selected' : ''; ?>>Processing</option>
+                                <option value="for_signature" <?php echo $status_filter === 'for_signature' ? 'selected' : ''; ?>>For Signature</option>
+                                <option value="for_release" <?php echo $status_filter === 'for_release' ? 'selected' : ''; ?>>For Release</option>
+                                <?php endif; ?>
+                                <?php if ($view_released || $view_archived): ?>
+                                <option value="released" <?php echo $status_filter === 'released' ? 'selected' : ''; ?>>Released</option>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <?php if ($search || $status_filter): ?>
+                    <div class="mt-2">
+                        <a href="?<?php 
+                            if ($view_archived) echo 'view=archived'; 
+                            elseif ($view_released) echo 'view=released'; 
+                        ?>" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Clear Filters
+                        </a>
+                    </div>
+                    <?php endif; ?>
+                </form>
+
+                <?php if ($total > 0): ?>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="pagination-info" id="paginationInfo">
+                        Showing <?php echo $offset + 1; ?> to <?php echo min($offset + $per_page, $total); ?> of <?php echo $total; ?> entries
+                    </div>
+                    </div>
+                <?php endif; ?>
+
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Student No.</th>
+                                <th>Student Name</th>
+                                <th>Status</th>
+                                <th>Claim Date</th>
+                                <th>Processed By</th>
+                                <th>Created</th>
+                                <th>Released Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestsTableBody">
+                        <?php if (empty($requests)): ?>
+                            <tr>
+                                <td colspan="10" class="text-center">No requests found</td>
+                            </tr>
+                            <?php else: ?>
+                            <?php foreach ($requests as $request): ?>
+                            <tr>
+                                <td><?php echo $request['id']; ?></td>
+                                <td><?php echo htmlspecialchars($request['title']); ?></td>
+                                <td><?php echo htmlspecialchars($request['student_number']); ?></td>
+                                <td><?php echo htmlspecialchars($request['student_name']); ?></td>
+                                <td>
+                                    <span class="badge bg-<?php 
+                                        echo match($request['status']) {
+                                            'pending' => 'warning',
+                                            'processing' => 'info',
+                                            'for_signature' => 'primary',
+                                            'for_release' => 'secondary',
+                                            'released' => 'success',
+                                            default => 'secondary'
+                                        };
+                                    ?> status-badge">
+                                        <?php echo str_replace('_', ' ', $request['status']); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <?php if (!empty($request['claiming_date'])): ?>
+                                        <?php
+                                        $claiming_date = new DateTime($request['claiming_date']);
+                                        $today = new DateTime();
+                                        $today->setTime(0, 0, 0);
+                                        $claiming_date_start = clone $claiming_date;
+                                        $claiming_date_start->setTime(0, 0, 0);
+                                        
+                                        $class = '';
+                                        if ($claiming_date_start < $today) {
+                                            $class = 'claiming-date-overdue';
+                                        } elseif ($claiming_date_start == $today) {
+                                            $class = 'claiming-date-today';
+                                        } else {
+                                            $class = 'claiming-date-upcoming';
+                                        }
+                                        ?>
+                                        <span class="<?php echo $class; ?>">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            <?php echo $claiming_date->format('M d, Y'); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="text-muted">Not scheduled</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($request['requester_name'])): ?>
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-user me-1"></i>
+                                            <?php echo htmlspecialchars($request['requester_name']); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="text-muted">Unknown</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo date('Y-m-d H:i', strtotime($request['created_at'])); ?></td>
+                                <td>
+                                    <?php if ($view_released && !empty($request['released_at'])): ?>
+                                        <?php echo date('Y-m-d H:i', strtotime($request['released_at'])); ?>
+                                    <?php else: ?>
+                                        <span class="text-muted">N/A</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" 
+                                            data-bs-target="#viewRequestModal<?php echo $request['id']; ?>">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
+                                    <?php if (!$view_released): ?>
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                                            data-bs-target="#updateClaimingDateModal<?php echo $request['id']; ?>"
+                                            title="Update Claiming Date">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </button>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
+
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal<?php echo $request['id']; ?>"
+                                                    title="Delete Permanently">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+
+                                    <?php endif; ?>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+
+                            <div class="modal fade" id="viewRequestModal<?php echo $request['id']; ?>" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Request Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h6>Title</h6>
+                                            <p><?php echo htmlspecialchars($request['title']); ?></p>
+                                            
+                                            <h6>Student Information</h6>
+                                            <div class="mb-2">
+                                                <strong>Student Number:</strong> 
+                                                <?php echo htmlspecialchars($request['student_number']); ?>
+                                            </div>
+                                            <div class="mb-3">
+                                                <strong>Student Name:</strong> 
+                                                <?php echo htmlspecialchars($request['student_name']); ?>
+                                            </div>
+                                            
+                                            <h6>Request Information</h6>
+                                            <div class="mb-2">
+                                                <strong>Status:</strong> 
+                                                <span class="badge bg-<?php 
+                                                    echo match($request['status']) {
+                                                        'pending' => 'warning',
+                                                        'processing' => 'info',
+                                                        'for_signature' => 'primary',
+                                                        'for_release' => 'secondary',
+                                                        'released' => 'success',
+                                                        default => 'secondary'
+                                                    };
+                                                ?>">
+                                                    <?php echo str_replace('_', ' ', $request['status']); ?>
+                                                </span>
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Submitted By:</strong> 
+                                                <?php echo !empty($request['requester_name']) ? htmlspecialchars($request['requester_name']) : 'Unknown'; ?>
+                                            </div>
+                                            <div class="mb-3">
+                                                <strong>Created:</strong> 
+                                                <?php echo date('F d, Y H:i', strtotime($request['created_at'])); ?>
+                                            </div>
+                                            
+                                            <?php if (!empty($request['claiming_date'])): ?>
+                                            <h6>Claiming Schedule</h6>
+                                            <div class="mb-3">
+                                                <strong>Claiming Date:</strong> 
+                                                <?php echo date('F d, Y', strtotime($request['claiming_date'])); ?>
+                                            </div>
+                                            <?php endif; ?>
+                                            
+                                            <?php if (!empty($request['description'])): ?>
+                                            <h6>Details</h6>
+                                            <p><?php echo nl2br(htmlspecialchars($request['description'])); ?></p>
+                                            <?php endif; ?>                                      
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <?php if (($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff') && !$view_released): ?>
+                            <div class="modal fade" id="updateClaimingDateModal<?php echo $request['id']; ?>" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Update Claiming Date</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="POST">
+                                            <div class="modal-body">
+                                                <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Student:</label>
+                                                    <p class="form-text"><?php echo htmlspecialchars($request['student_name']); ?> (<?php echo htmlspecialchars($request['student_number']); ?>)</p>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Current Status:</label>
+                                                    <p class="form-text">
+                                                        <span class="badge bg-<?php 
+                                                            echo match($request['status']) {
+                                                                'pending' => 'warning',
+                                                                'processing' => 'info',
+                                                                'for_signature' => 'primary',
+                                                                'for_release' => 'secondary',
+                                                                'released' => 'success',
+                                                                default => 'secondary'
+                                                            };
+                                                        ?>">
+                                                            <?php echo str_replace('_', ' ', $request['status']); ?>
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Claiming Date</label>
+                                                    <input type="date" name="claiming_date" class="form-control" 
+                                                           value="<?php echo !empty($request['claiming_date']) ? date('Y-m-d', strtotime($request['claiming_date'])) : ''; ?>"
+                                                           min="<?php echo date('Y-m-d'); ?>">
+                                                    <small class="form-text text-muted">Leave empty to remove the claiming date</small>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" name="update_claiming_date" class="btn btn-primary">Update Claiming Date</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                            <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <?php if ($total_pages > 1): ?>
+                <nav id="paginationNav">
+                <ul class="pagination justify-content-center">
+                        <?php if ($page > 1): ?>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo $search ? "&search=" . urlencode($search) : ''; ?><?php echo $status_filter ? "&status=" . urlencode($status_filter) : ''; ?><?php if ($view_archived) echo "&view=archived"; elseif ($view_released) echo "&view=released"; ?>" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <?php endif; ?>
+
+                        <?php
+                        $start_page = max(1, $page - 2);
+                        $end_page = min($total_pages, $page + 2);
+                        
+                        for ($i = $start_page; $i <= $end_page; $i++):
+                        ?>
+                        <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
+                            <a class="page-link" href="?page=<?php echo $i; ?><?php echo $search ? "&search=" . urlencode($search) : ''; ?><?php echo $status_filter ? "&status=" . urlencode($status_filter) : ''; ?><?php if ($view_archived) echo "&view=archived"; elseif ($view_released) echo "&view=released"; ?>">
+                                <?php echo $i; ?>
+                            </a>
+                        </li>
+                        <?php endfor; ?>
+
+                        <?php if ($page < $total_pages): ?>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<?php echo $page + 1; ?><?php echo $search ? "&search=" . urlencode($search) : ''; ?><?php echo $status_filter ? "&status=" . urlencode($status_filter) : ''; ?><?php if ($view_archived) echo "&view=archived"; elseif ($view_released) echo "&view=released"; ?>" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                    </ul>
+                </nav>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
+    <div class="modal fade" id="newRequestModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Request Slip</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label">Student Name <span class="text-danger">*</span></label>
+                                <input type="text" name="student_name" class="form-control" required placeholder="Enter full name">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Student No. <span class="text-danger">*</span></label>
+                                <input type="text" name="student_number" class="form-control numerical-only" required placeholder="Enter student number" 
+                                       pattern="[0-9]*" inputmode="numeric" title="Please enter numbers only">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label">Program <span class="text-danger">*</span></label>
+                                <select name="program" class="dropdown" required>
+                                    <option value="BSCS">BSCS</option>
+                                    <option value="BSIT">BSIT</option>
+                                    <option value="BSEd-Sci">BSEd-Sci</option>
+                                    <option value="BSEd-Eng">BSEd-Eng</option>
+                                    <option value="BEEd">BEEd</option>
+                                    <option value="BSHM">BSHM</option>
+                                    <option value="BSBA">BSBA</option>
+                                    <option value="BSFAS">BSFAS</option>
+                                    <option value="TCP">TCP</option>
+                                    <option value="LSHS">LSHS</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Year of Graduation</label>
+                                <input type="text" name="year_graduation" class="form-control numerical-only" 
+                                       pattern="[0-9]*" inputmode="numeric" placeholder="e.g. 2024" title="Please enter numbers only">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Contact No. <span class="text-danger">*</span></label>
+                                <input type="text" name="contact_no" class="form-control numerical-only" required placeholder="Enter contact number" 
+                                       pattern="[0-9]*" inputmode="numeric" title="Please enter numbers only">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Claiming Date</label>
+                                <input type="date" name="claiming_date" class="form-control" 
+                                       min="<?php echo date('Y-m-d'); ?>">
+                                <small class="form-text text-muted">Optional: Schedule when the client will claim the documents</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Please check your request: <span class="text-danger">*</span></label>
+                            <div class="mt-2">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="tor" id="tor">
+                                    <label class="form-check-label" for="tor">
+                                        Transcript of Record (TOR)
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="diploma" id="diploma">
+                                    <label class="form-check-label" for="diploma">
+                                        Diploma
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="cog" id="cog">
+                                    <label class="form-check-label" for="cog">
+                                        Cog
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="coe" id="coe">
+                                    <label class="form-check-label" for="coe">
+                                        Coe
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="form_137a" id="form_137a">
+                                    <label class="form-check-label" for="form_137a">
+                                        Form 137A
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="cav" id="cav">
+                                    <label class="form-check-label" for="cav">
+                                        Certification Authentication and Verification (CAV)
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="certification" id="certification" onchange="toggleCertificationInput()">
+                                    <label class="form-check-label" for="certification">
+                                        Certification:
+                                    </label>
+                                    <input type="text" name="certification_type" id="certification_type" class="form-control mt-2" 
+                                           placeholder="Specify certification type" style="display: none;">
+                                </div>
+                            </div>
+                            <small class="text-muted">Please select at least one document type.</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Purpose <span class="text-danger">*</span></label>
+                            <textarea name="purpose" class="form-control" rows="3" required placeholder="Enter the purpose of your request"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
+    <?php foreach ($all_requests as $request): ?>
+    
+    <?php if (!$view_released): ?>
+    <div class="modal fade" id="archiveModal<?php echo $request['id']; ?>" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><?php echo ($view_archived || $view_released) ? 'Restore Request' : 'Archive Request'; ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body">
+                        <p>Are you sure you want to <?php echo ($view_archived || $view_released) ? 'restore' : 'archive'; ?> this request?</p>
+                        <p><strong>Title:</strong> <?php echo htmlspecialchars($request['title']); ?></p>
+                        <p><strong>Student:</strong> <?php echo htmlspecialchars($request['student_name']); ?></p>
+                        <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
+                        <input type="hidden" name="archive_action" value="<?php echo ($view_archived || $view_released) ? 'restore' : 'archive'; ?>">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-<?php echo ($view_archived || $view_released) ? 'success' : 'warning'; ?>">
+                            <?php echo ($view_archived || $view_released) ? 'Restore' : 'Archive'; ?> Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <div class="modal fade" id="deleteModal<?php echo $request['id']; ?>" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Request Permanently</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body">
+                        <p class="text-danger"><strong>Warning:</strong> This action cannot be undone!</p>
+                        <p>Are you sure you want to permanently delete this request?</p>
+                        <p><strong>Title:</strong> <?php echo htmlspecialchars($request['title']); ?></p>
+                        <p><strong>Student:</strong> <?php echo htmlspecialchars($request['student_name']); ?></p>
+                        <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
+                        <input type="hidden" name="delete" value="1">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Delete Permanently</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <?php if ($view_released): ?>
+    <div class="modal fade" id="editReleasedDateModal<?php echo $request['id']; ?>" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Released Date</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
+                        <div class="mb-3">
+                            <p><strong>Request Title:</strong> <?php echo htmlspecialchars($request['title']); ?></p>
+                            <p><strong>Student Name:</strong> <?php echo htmlspecialchars($request['student_name']); ?></p>
+                        </div>
+                        <div class="mb-3">
+                            <label for="released_date_<?php echo $request['id']; ?>" class="form-label">Released Date</label>
+                            <input type="datetime-local" id="released_date_<?php echo $request['id']; ?>" name="released_date" class="form-control" 
+                                   value="<?php echo !empty($request['released_at']) ? date('Y-m-d\TH:i', strtotime($request['released_at'])) : ''; ?>"
+                                   required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="update_released_date" class="btn btn-primary">Update Date</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+    <?php endforeach; ?>
+    <?php endif; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
