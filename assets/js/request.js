@@ -133,14 +133,36 @@ function toggleCertificationInput() {
     const checkbox = document.getElementById('certification');
     const input = document.getElementById('certification_type');
     
+    const quantityId = `certification_quantity`;
+    const dateId = `certification_claiming_date`;
+
+    const quantity = document.getElementById(quantityId);
+    const date = document.getElementById(dateId);
+
     if (checkbox && input) {
         if (checkbox.checked) {
             input.style.display = 'block';
             input.required = true;
+
+            quantity.disabled = false;
+            date.disabled = false;
+
+            quantity.required = true;
+            date.required = true;
         } else {
             input.style.display = 'none';
             input.required = false;
             input.value = '';
+            
+            quantity.disabled = true;
+            date.disabled = true;
+
+            quantity.required = false;
+            date.required = false;
+
+            quantity.value = '';
+            date.value = '';
+
         }
     }
 }
@@ -152,14 +174,36 @@ function toggleOthersInput() {
     const checkbox = document.getElementById('others');
     const input = document.getElementById('others_type');
     
+    const quantityId = `others_quantity`;
+    const dateId = `others_claiming_date`;
+
+    const quantity = document.getElementById(quantityId);
+    const date = document.getElementById(dateId);
+
+
     if (checkbox && input) {
         if (checkbox.checked) {
             input.style.display = 'block';
             input.required = true;
+
+            quantity.disabled = false;
+            date.disabled = false;
+
+            quantity.required = true;
+            date.required = true;
         } else {
             input.style.display = 'none';
             input.required = false;
             input.value = '';
+
+            quantity.disabled = true;
+            date.disabled = true;
+
+            quantity.required = false;
+            date.required = false;
+
+            quantity.value = '';
+            date.value = '';
         }
     }
 }
@@ -183,6 +227,36 @@ function validateNewRequestForm(e) {
         e.preventDefault();
         alert('Please select at least one document type.');
         return false;
+    }
+}
+
+function toggleQuantityAndDateInput(element) {
+    const quantityId = `${element}_quantity`;
+    const dateId = `${element}_claiming_date`;
+
+    const checkbox = document.getElementById(element);
+
+    const quantity = document.getElementById(quantityId);
+    const date = document.getElementById(dateId);
+
+    
+    if (checkbox) {
+        if (checkbox.checked) {
+            quantity.disabled = false;
+            date.disabled = false;
+
+            quantity.required = true;
+            date.required = true;
+        } else {
+            quantity.disabled = true;
+            date.disabled = true;
+
+            quantity.required = false;
+            date.required = false;
+
+            quantity.value = '';
+            date.value = '';
+        }
     }
 }
 

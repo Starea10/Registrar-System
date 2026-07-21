@@ -321,11 +321,22 @@
       <img src="assets/images/cvsu-logo-diamond.png" 
            alt="CvSU Naic Campus Registrar Office Logo" 
            class="university-logo">
-      <h2>Request Management System</h2>
-      <div class="subtitle">Cavite State University - Naic Campus<br>Registrar's Office</div>
+      
+      <div class="subtitle">Cavite State University Naic<br>Office of the Campus Registrar</div>
     </div>
+      <div style="text-align: center;">
+        <h2>Request Management System</h2>
+      </div>
+      
+      <a href="client_view.php" class="btn-primary">
+        <i class="fas fa-eye me-2"></i>View Public Request Tracker
+      </a>
 
-    <form action="includes/login.php" method="POST">
+      <div class="button-divider">
+        <span>or</span>
+      </div>
+
+      <form action="includes/login.php" method="POST">
       <div class="form-group">
         <label for="username" class="form-label">Username</label>
         <input id="username" name="username" type="text" class="form-control" required>
@@ -339,17 +350,11 @@
         </div>
       </div>
 
-      <button type="submit" class="btn-primary">
+      <button type="submit" class="btn-secondary">
         <i class="fas fa-sign-in-alt me-2"></i>Sign In
       </button>
 
-      <div class="button-divider">
-        <span>or</span>
-      </div>
-
-      <a href="client_view.php" class="btn-secondary">
-        <i class="fas fa-eye me-2"></i>View Public Request Tracker
-      </a>
+      
 
       <?php if (isset($_GET['error'])): ?>
         <div class="alert alert-danger">Invalid username or password</div>

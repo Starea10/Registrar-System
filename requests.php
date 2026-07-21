@@ -13,61 +13,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_status']) && 
     
     // Verify all required fields are present
     if (isset($_POST['student_number'], $_POST['student_name'], $_POST['program'], $_POST['year_graduation'], $_POST['contact_no'], $_POST['purpose'])) {
-        $student_number = $conn->real_escape_string($_POST['student_number']);
-        $student_name = $conn->real_escape_string($_POST['student_name']);
-        $program = $conn->real_escape_string($_POST['program']);
-        $year_graduation = $conn->real_escape_string($_POST['year_graduation']);
-        $contact_no = $conn->real_escape_string($_POST['contact_no']);
-        $purpose = $conn->real_escape_string($_POST['purpose']);
-        
-        // Handle claiming date
-        $claiming_date = null;
-        if (!empty($_POST['claiming_date'])) {
-            $claiming_date = $conn->real_escape_string($_POST['claiming_date']);
-        }
-        
-        // Handle document type checkboxes
-        $document_types = array();
-        if (isset($_POST['tor'])) $document_types[] = 'Transcript of Record (TOR)';
-        if (isset($_POST['diploma'])) $document_types[] = 'Diploma';
-        if (isset($_POST['cog'])) $document_types[] = 'Cog';
-        if (isset($_POST['coe'])) $document_types[] = 'Coe';
-        if (isset($_POST['form_137a'])) $document_types[] = 'Form 137A';
-        if (isset($_POST['cav'])) $document_types[] = 'Certification Authentication and Verification (CAV)';
-        if (isset($_POST['certification'])) {
-            $cert_type = $conn->real_escape_string($_POST['certification_type']);
-            $document_types[] = 'Certification: ' . $cert_type;
-        }
-        
-        // Create title from document types
-        $title = 'Request for : ' . implode(', ', $document_types);
-        
-        // Create description with all details
-        $description = "Student Number: " . $student_number . "\n";
-        $description .= "Student Name: " . $student_name . "\n";
-        $description .= "Program: " . $program . "\n";
-        $description .= "Year of Graduation: " . $year_graduation . "\n";
-        $description .= "Contact Number: " . $contact_no . "\n";
-        $description .= "Purpose: " . $purpose . "\n";
-        $description .= "Requested Documents: " . implode(', ', $document_types);
-        if ($claiming_date) {
-            $description .= "\nScheduled Claiming Date: " . date('Y-m-d', strtotime($claiming_date));
-        }
+        try{
+            foreach($_POST['document'] as $document){
+            $student_number = $conn->real_escape_string($_POST['student_number']);
+            $student_name = $conn->real_escape_string($_POST['student_name']);
+            $program = $conn->real_escape_string($_POST['program']);
+            $year_graduation = $conn->real_escape_string($_POST['year_graduation']);
+            $contact_no = $conn->real_escape_string($_POST['contact_no']);
+            $purpose = $conn->real_escape_string($_POST['purpose']);
 
-        $claiming_date_sql = $claiming_date ? "'$claiming_date'" : "NULL";
-        $sql = "INSERT INTO requests (title, student_number, student_name, description, requester_id, claiming_date) 
-                VALUES ('$title', '$student_number', '$student_name', '$description', {$_SESSION['user_id']}, $claiming_date_sql)";
+            // Handle claiming date
+            $claiming_date_post = $document . '_claiming_date';
+            $claiming_date = $conn->real_escape_string($_POST[$claiming_date_post]);
+
+            // Handle document type checkboxes
+            $document_qty_post = $document . '_quantity';
+            $document_qty = $conn->real_escape_string($_POST[$document_qty_post]);
+            $document_types = array();
+            if ($document == 'tor') $document_types[] = $document_qty . 'x Transcript of Record (TOR)';
+            if ($document == 'diploma') $document_types[] = $document_qty . 'x Diploma';
+            if ($document == 'cog') $document_types[] = $document_qty . 'x Certificate of Grades (COG)';
+            if ($document == 'coe') $document_types[] = $document_qty . 'x Certificate of Enrollment (COE)';
+            if ($document == 'form_137a') $document_types[] = $document_qty . 'x Form 137A';
+            if ($document == 'cav') $document_types[] = $document_qty . 'x Certification Authentication and Verification (CAV)';
+            if ($document == 'certification') {
+                $cert_type = $conn->real_escape_string($_POST['certification_type']);
+                $document_types[] = $document_qty . 'x Certification: ' . $cert_type;
+            }
+            if ($document == 'others') {
+                $docs_type = $conn->real_escape_string($_POST['others_type']);
+                $document_types[] = $document_qty . 'x ' . $docs_type;
+            }
+            // Create title from document types
+            $title = 'Request for : ' . implode(', ', $document_types);
         
-        if ($conn->query($sql)) {
-            // Log action
-            $sql = "INSERT INTO audit_trail (user_id, action, details) 
-                    VALUES ({$_SESSION['user_id']}, 'create_request', 'Created new request: $title')";
-            $conn->query($sql);
+            // Create description with all details
+            $description = "Student Number: " . $student_number . "\n";
+            $description .= "Student Name: " . $student_name . "\n";
+            $description .= "Program: " . $program . "\n";
+            $description .= "Year of Graduation: " . $year_graduation . "\n";
+            $description .= "Contact Number: " . $contact_no . "\n";
+            $description .= "Purpose: " . $purpose . "\n";
+            $description .= "Requested Documents: " . implode(', ', $document_types);
+            $description .= "\nScheduled Claiming Date: " . date('Y-m-d', strtotime($claiming_date));
             
-            // Redirect to prevent form resubmission
-            header('Location: ' . $_SERVER['PHP_SELF']);
-            exit();
+            $claiming_date_sql = $claiming_date ? "'$claiming_date'" : "NULL";
+            $sql = "INSERT INTO requests (title, student_number, student_name, description, requester_id, claiming_date) 
+                    VALUES ('$title', '$student_number', '$student_name', '$description', {$_SESSION['user_id']}, $claiming_date_sql)";
+            
+            if ($conn->query($sql)) {
+                // Log action
+                $sql = "INSERT INTO audit_trail (user_id, action, details) 
+                        VALUES ({$_SESSION['user_id']}, 'create_request', 'Created new request: $title')";
+                $conn->query($sql);
+                
+            }
         }
+        
+        //Redirect to prevent form resubmission
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit();
+        }
+        catch (Exception $e){
+            $_SESSION['error'] = "Error deleting request: " . $e->getMessage();
+        }
+        
     }
 }
 
@@ -616,11 +626,7 @@ if (isset($_GET['ajax'])) {
 
 // Determine page title based on view
 $page_title = 'Active Requests';
-// if ($view_released) {
-//     $page_title = 'Released Archive';
-// } elseif ($view_archived) {
-//     $page_title = 'Archived Requests';
-// }
+
 ?>
 
 <!DOCTYPE html>
@@ -1090,16 +1096,16 @@ $page_title = 'Active Requests';
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Title</th>
-                                <th>Student No.</th>
-                                <th>Student Name</th>
-                                <th>Status</th>
-                                <th>Claim Date</th>
-                                <th>Processed By</th>
-                                <th>Created</th>
-                                <th>Released Date</th>
-                                <th>Actions</th>
+                                <th class="text-center">ID</th>
+                                <th class="text-center">Title</th>
+                                <th class="text-center">Student No.</th>
+                                <th class="text-center">Student Name</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Claim Date</th>
+                                <th class="text-center">Processed By</th>
+                                <th class="text-center">Created</th>
+                                <th class="text-center">Released Date</th>
+                                <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="requestsTableBody">
@@ -1110,11 +1116,11 @@ $page_title = 'Active Requests';
                             <?php else: ?>
                             <?php foreach ($requests as $request): ?>
                             <tr>
-                                <td><?php echo $request['id']; ?></td>
-                                <td><?php echo htmlspecialchars($request['title']); ?></td>
-                                <td><?php echo htmlspecialchars($request['student_number']); ?></td>
-                                <td><?php echo htmlspecialchars($request['student_name']); ?></td>
-                                <td>
+                                <td class="text-center"><?php echo $request['id']; ?></td>
+                                <td class="text-center"><?php echo htmlspecialchars($request['title']); ?></td>
+                                <td class="text-center"><?php echo htmlspecialchars($request['student_number']); ?></td>
+                                <td class="text-center"><?php echo htmlspecialchars($request['student_name']); ?></td>
+                                <td class="text-center">
                                     <?php if (($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff') && !$view_archived && !$view_released): ?>
                                     <form method="POST" style="display: inline;" class="status-update-form">
                                         <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
@@ -1142,7 +1148,7 @@ $page_title = 'Active Requests';
                                     </span>
                                     <?php endif; ?>
                                 </td>
-                                <td>
+                                <td class="text-center">
                                     <?php if (!empty($request['claiming_date'])): ?>
                                         <?php
                                         $claiming_date = new DateTime($request['claiming_date']);
@@ -1168,7 +1174,7 @@ $page_title = 'Active Requests';
                                         <span class="text-muted">Not scheduled</span>
                                     <?php endif; ?>
                                 </td>
-                                <td>
+                                <td class="text-center">
                                     <?php if (!empty($request['requester_name'])): ?>
                                         <span class="badge bg-info">
                                             <i class="fas fa-user me-1"></i>
@@ -1178,15 +1184,15 @@ $page_title = 'Active Requests';
                                         <span class="text-muted">Unknown</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php echo date('Y-m-d H:i', strtotime($request['created_at'])); ?></td>
-                                <td>
+                                <td class="text-center"><?php echo date('Y-m-d H:i', strtotime($request['created_at'])); ?></td>
+                                <td class="text-center">
                                     <?php if ($view_released && !empty($request['released_at'])): ?>
                                         <?php echo date('Y-m-d H:i', strtotime($request['released_at'])); ?>
                                     <?php else: ?>
                                         <span class="text-muted">N/A</span>
                                     <?php endif; ?>
                                 </td>
-                                <td>
+                                <td class="text-center">
                                     <button class="btn btn-sm btn-info" data-bs-toggle="modal" 
                                             data-bs-target="#viewRequestModal<?php echo $request['id']; ?>">
                                         <i class="fas fa-eye"></i>
@@ -1374,7 +1380,7 @@ $page_title = 'Active Requests';
 
     <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
     <div class="modal fade" id="newRequestModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Request Slip</h5>
@@ -1424,69 +1430,87 @@ $page_title = 'Active Requests';
                                        pattern="[0-9]*" inputmode="numeric" title="Please enter numbers only">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Claiming Date</label>
-                                <input type="date" name="claiming_date" class="form-control" 
-                                       min="<?php echo date('Y-m-d'); ?>">
-                                <small class="form-text text-muted">Optional: Schedule when the client will claim the documents</small>
+                                <label class="form-label">Clerk/Staff <span class="text-danger">*</span></label>
+                                <select name="clerk" class="dropdown" required>
+                                    <option value="Admin">admin</option>
+                                    <option value="Clerk 1">Clerk 1</option>
+                                    <option value="Clerk 2">Clerk 2</option>
+                                </select>
                             </div>
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label">Please check your request: <span class="text-danger">*</span></label>
-                            <div class="mt-2">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" name="tor" id="tor">
-                                    <label class="form-check-label" for="tor">
-                                        Transcript of Record (TOR)
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" name="diploma" id="diploma">
-                                    <label class="form-check-label" for="diploma">
-                                        Diploma
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" name="cog" id="cog">
-                                    <label class="form-check-label" for="cog">
-                                        Cog
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" name="coe" id="coe">
-                                    <label class="form-check-label" for="coe">
-                                        Coe
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" name="form_137a" id="form_137a">
-                                    <label class="form-check-label" for="form_137a">
-                                        Form 137A
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" name="cav" id="cav">
-                                    <label class="form-check-label" for="cav">
-                                        Certification Authentication and Verification (CAV)
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" name="certification" id="certification" onchange="toggleCertificationInput()">
-                                    <label class="form-check-label" for="certification">
-                                        Certification:
-                                    </label>
-                                    <input type="text" name="certification_type" id="certification_type" class="form-control mt-2" 
-                                           placeholder="Specify certification type" style="display: none;">
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" name="others" id="others" onchange="toggleOthersInput()">
-                                    <label class="form-check-label" for="others">
-                                        Others
-                                    </label>
-                                    <input type="text" name="others_type" id="others_type" class="form-control mt-2" 
-                                           placeholder="Specify document here" style="display: none;">
-                                </div>
-                            </div>
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" class="text-center"> </th>    
+                                        <th scope="col" class="text-center">Request</th>
+                                        <th scope="col" class="text-center">Qty</th>
+                                        <th scope="col" class="text-center">Claiming Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td scope="row" class="text-center"><input class="form-check-input" type="checkbox" name="document[]" id="tor" value="tor" onchange="toggleQuantityAndDateInput('tor')"></td>
+                                        <td>Transcript of Record (TOR)</td>
+                                        <td><input disabled type="number" id="tor_quantity" name="tor_quantity" min="1" max="99"/></td>
+                                        <td><input disabled id="tor_claiming_date" type="date" name="tor_claiming_date" class="form-control" 
+                                       min="<?php echo date('Y-m-d'); ?>"></td>
+                                    </tr>
+                                    <tr>
+                                        <td scope="row" class="text-center"><input class="form-check-input" type="checkbox" name="document[]" id="diploma" value="diploma" onchange="toggleQuantityAndDateInput('diploma')"></td>
+                                        <td>Diploma</td>
+                                        <td><input disabled type="number" id="diploma_quantity" name="diploma_quantity" min="1" max="99"/></td>
+                                        <td><input disabled type="date" id="diploma_claiming_date" name="diploma_claiming_date" class="form-control" 
+                                       min="<?php echo date('Y-m-d'); ?>"></td>
+                                    </tr>
+                                    <tr>
+                                        <td scope="row" class="text-center"><input class="form-check-input" type="checkbox" name="document[]" id="cog" value="cog" onchange="toggleQuantityAndDateInput('cog')"></td>
+                                        <td>Certificate of Grades (COG)</td>
+                                        <td><input disabled type="number" id="cog_quantity" name="cog_quantity" min="1" max="99"/></td>
+                                        <td><input disabled type="date" id="cog_claiming_date" name="cog_claiming_date" class="form-control" 
+                                       min="<?php echo date('Y-m-d'); ?>"></td>
+                                    </tr>
+                                    <tr>
+                                        <td scope="row" class="text-center"><input class="form-check-input" type="checkbox" name="document[]" id="coe" value="coe" onchange="toggleQuantityAndDateInput('coe')"></td>
+                                        <td>Certificate of Enrollment (COE)</td>
+                                        <td><input disabled type="number" id="coe_quantity" name="coe_quantity" min="1" max="99"/></td>
+                                        <td><input disabled type="date" id="coe_claiming_date" name="coe_claiming_date" class="form-control" 
+                                       min="<?php echo date('Y-m-d'); ?>"></td>
+                                    </tr>
+                                    <tr>
+                                        <td scope="row" class="text-center"><input class="form-check-input" type="checkbox" name="document[]" id="form_137a" value="form_137a" onchange="toggleQuantityAndDateInput('form_137a')"></td>
+                                        <td>Form 137A</td>
+                                        <td><input disabled type="number" id="form_137a_quantity" name="form_137a_quantity" min="1" max="99"/></td>
+                                        <td><input disabled type="date" id="form_137a_claiming_date" name="form_137a_claiming_date" class="form-control" 
+                                       min="<?php echo date('Y-m-d'); ?>"></td>
+                                    </tr>
+                                    <tr>
+                                        <td scope="row" class="text-center"><input class="form-check-input" type="checkbox" name="document[]" id="cav" value="cav" onchange="toggleQuantityAndDateInput('cav')"></td>
+                                        <td>Certification Authentication and Verification (CAV)</td>
+                                        <td><input disabled type="number" id="cav_quantity" name="cav_quantity" min="1" max="99"/></td>
+                                        <td><input disabled type="date" id="cav_claiming_date" name="cav_claiming_date" class="form-control" 
+                                       min="<?php echo date('Y-m-d'); ?>"></td>
+                                    </tr>
+                                    <tr>
+                                        <td scope="row" class="text-center"><input class="form-check-input" type="checkbox" name="document[]" id="certification" value="certification" onchange="toggleCertificationInput()"></td>
+                                        <td>Certification<input type="text" name="certification_type" id="certification_type" class="form-control mt-2" 
+                                           placeholder="Specify certification type" style="display: none;"></td>
+                                        <td><input disabled type="number" id="certification_quantity" name="certification_quantity" min="1" max="99"/></td>
+                                        <td><input disabled type="date" id="certification_claiming_date" name="certification_claiming_date" class="form-control" 
+                                       min="<?php echo date('Y-m-d'); ?>"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row" class="text-center"><input class="form-check-input" type="checkbox" name="document[]" id="others" value="others" onchange="toggleOthersInput()"></th>
+                                        <td>Others<input type="text" name="others_type" id="others_type" class="form-control mt-2" 
+                                           placeholder="Specify document here" style="display: none;"></td>
+                                        <td><input disabled type="number" id="others_quantity" name="others_quantity" min="1" max="99"/></td>
+                                        <td><input disabled type="date" id="others_claiming_date" name="others_claiming_date" class="form-control" 
+                                       min="<?php echo date('Y-m-d'); ?>"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                             <small class="text-muted">Please select at least one document type.</small>
                         </div>
                         
