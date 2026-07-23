@@ -174,8 +174,7 @@ if (isset($_POST['update_status']) && isset($_POST['request_id']) && isset($_POS
             $released_at_sql = ($new_status === 'released') ? ", released_at = NOW()" : "";
             
             $update_sql = "UPDATE requests SET status = '$new_status', is_archived = $is_archived $released_at_sql WHERE id = $request_id";
-            
-            if ($conn->query($update_sql)) {
+                    if ($conn->query($update_sql)) {
                 $log_details = "Updated request #$request_id status from '$old_status' to '$new_status'";
                 
                 if ($new_status === 'released') {
@@ -184,6 +183,13 @@ if (isset($_POST['update_status']) && isset($_POST['request_id']) && isset($_POS
                     SELECT * FROM requests 
                     WHERE id = $request_id;";
                     $conn->query($archive_sql);
+
+                    //Delete the row from the active requests table
+                    $delete_sql = "DELETE FROM requests
+                    WHERE `id` = $request_id;";
+                    $conn->query($delete_sql);
+                    $conn->commit();
+
                 }
 
                 //Audit the following changes
@@ -213,13 +219,8 @@ if (isset($_POST['update_status']) && isset($_POST['request_id']) && isset($_POS
                     $_SESSION['success'] = ($new_status === 'released') ? "Request marked as released and automatically archived." : "Request status updated successfully.";
                     $redirect_url = $_SERVER['PHP_SELF'] . (isset($_GET['page']) ? '?page=' . $_GET['page'] : '') . (isset($_GET['view']) ? (strpos($_SERVER['PHP_SELF'], '?') ? '&' : '?') . 'view=' . $_GET['view'] : '');
                     
-                    //Delete the row from the active requests table
-                    $delete_sql = "DELETE FROM requests
-                    WHERE requests . id = $request_id;";
-                    $conn->query($delete_sql);
-                    $conn->commit();
-
-                    header('Location: ' . $redirect_url);
+                    
+                    header('Refresh: ' . $redirect_url);
                     exit();
                 } else {
                     throw new Exception("Failed to log audit trail: " . $conn->error);
@@ -227,6 +228,7 @@ if (isset($_POST['update_status']) && isset($_POST['request_id']) && isset($_POS
             } else {
                 throw new Exception("Failed to update request: " . $conn->error);
             }
+            
         } catch (Exception $e) {
             $conn->rollback();
             
@@ -466,11 +468,11 @@ $total = $total_result->fetch_assoc()['total'];
 $total_pages = ceil($total / $per_page);
 
 // Get requests for current page
-$sql = "SELECT r.*, u.username as requester_name 
+$sql = "SELECT r.*, u.staff_name as requester_name 
         FROM requests r 
-        LEFT JOIN users u ON r.requester_id = u.id 
+        LEFT JOIN staffs u ON r.requester_id = u.id 
         $where_clause 
-        ORDER BY r.created_at DESC 
+        ORDER BY r.claiming_date ASC 
         LIMIT $offset, $per_page";
 $requests_result = $conn->query($sql);
 
@@ -483,9 +485,9 @@ if ($requests_result) {
 }
 
 // Get all requests for modals (needed for archive/delete modals)
-$all_requests_sql = "SELECT r.*, u.username as requester_name 
+$all_requests_sql = "SELECT r.*, u.staff_name as requester_name 
                      FROM requests r 
-                     LEFT JOIN users u ON r.requester_id = u.id 
+                     LEFT JOIN staffs u ON r.requester_id = u.id 
                      $where_clause 
                      ORDER BY r.created_at DESC";
 $all_requests_result = $conn->query($all_requests_sql);
@@ -626,6 +628,9 @@ if (isset($_GET['ajax'])) {
 
 // Determine page title based on view
 $page_title = 'Active Requests';
+
+$staffs_sql = "SELECT * FROM staffs;";
+$staffs_result = $conn->query($staffs_sql);
 
 ?>
 
@@ -773,6 +778,10 @@ $page_title = 'Active Requests';
             width: 100%;
             border-collapse: collapse;
             min-width: 600px;
+        }
+        .table-responsive{
+            overflow: auto;
+            height: 70vh;
         }
         th, td {
             padding: 12px 15px;
@@ -1094,7 +1103,7 @@ $page_title = 'Active Requests';
 
                 <div class="table-responsive">
                     <table class="table table-striped">
-                        <thead>
+                        <thead class = "table-light">
                             <tr>
                                 <th class="text-center">ID</th>
                                 <th class="text-center">Title</th>
@@ -1156,13 +1165,17 @@ $page_title = 'Active Requests';
                                         $today->setTime(0, 0, 0);
                                         $claiming_date_start = clone $claiming_date;
                                         $claiming_date_start->setTime(0, 0, 0);
+
+                                        $current_status = $request['status'];
                                         
                                         $class = '';
-                                        if ($claiming_date_start < $today) {
-                                            $class = 'claiming-date-overdue';
-                                        } elseif ($claiming_date_start == $today) {
-                                            $class = 'claiming-date-today';
-                                        } else {
+                                        if ($current_status != 'for_release'){
+                                            if ($claiming_date_start < $today) {
+                                                $class = 'claiming-date-overdue';
+                                            } elseif ($claiming_date_start == $today) {
+                                                $class = 'claiming-date-today';
+                                            } 
+                                        }else {
                                             $class = 'claiming-date-upcoming';
                                         }
                                         ?>
@@ -1432,9 +1445,9 @@ $page_title = 'Active Requests';
                             <div class="col-md-6">
                                 <label class="form-label">Clerk/Staff <span class="text-danger">*</span></label>
                                 <select name="clerk" class="dropdown" required>
-                                    <option value="Admin">admin</option>
-                                    <option value="Clerk 1">Clerk 1</option>
-                                    <option value="Clerk 2">Clerk 2</option>
+                                    <?php foreach ($staffs_result as $staff): ?>
+                                        <option value="<?= $staff['id']; ?>"><?= htmlspecialchars($staff['staff_name']); ?></option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                         </div>
@@ -1446,7 +1459,7 @@ $page_title = 'Active Requests';
                                     <tr>
                                         <th scope="col" class="text-center"> </th>    
                                         <th scope="col" class="text-center">Request</th>
-                                        <th scope="col" class="text-center">Qty</th>
+                                        <th scope="col" class="text-center">Quantity</th>
                                         <th scope="col" class="text-center">Claiming Date</th>
                                     </tr>
                                 </thead>
@@ -1516,7 +1529,14 @@ $page_title = 'Active Requests';
                         
                         <div class="mb-3">
                             <label class="form-label">Purpose <span class="text-danger">*</span></label>
-                            <textarea name="purpose" class="form-control" rows="3" required placeholder="Enter the purpose of your request"></textarea>
+                                <select name="clerk" class="dropdown" required>
+                                    <option value="Employment">Employment</option>
+                                    <option value="Board Exam">Board Exam</option>
+                                    <option value="Scholarship">Scholarship</option>
+                                    <option value="Transfer">Transfer</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                            <textarea name="others_request" id="others_request" style="display: none;" class="form-control" rows="3" placeholder="Enter the purpose of your request"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">

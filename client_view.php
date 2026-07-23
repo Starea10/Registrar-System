@@ -643,9 +643,14 @@ $requests_result = $conn->query($sql);
     <div class="container-fluid">
         <div class="main-container fade-in">
             <!-- Header Section -->
-            <div class="header-section">
-                <div class="container">
-                    <h1><i class="fas fa-clipboard-list me-3"></i>Cavite State University - Naic Registrar</h1>
+            <div class="header-section row">
+                <div class="container col-md-1">
+                    <button onclick="window.location.href='index.php'" class="btn btn-sm btn-light">
+                        <i class="fa-solid fa-house"></i>
+                    </button>
+                </div>
+                <div class="container col">
+                    <h1><i class="fas fa-clipboard-list me-3"></i>Cavite State University Naic - Office of the Campus Registrar</h1>
                     <p>Real-time Document Request Tracking System</p>                   
                 </div>
             </div>

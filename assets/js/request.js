@@ -149,6 +149,8 @@ function toggleCertificationInput() {
 
             quantity.required = true;
             date.required = true;
+
+            quantity.value = 1;
         } else {
             input.style.display = 'none';
             input.required = false;
@@ -167,6 +169,18 @@ function toggleCertificationInput() {
     }
 }
 
+// Clickable table rows on the request slip form
+document.querySelectorAll('.clickable-row').forEach(row => {
+  row.addEventListener('click', function(event) {
+    // Find the checkbox inside this row
+    const checkbox = this.querySelector('.row-checkbox');
+    
+    // Prevent double-toggle if the user clicked the checkbox directly
+    if (event.target !== checkbox) {
+      checkbox.checked = !checkbox.checked;
+    }
+})
+})
 /**
  * Toggle others input field visibility
  */
@@ -191,6 +205,8 @@ function toggleOthersInput() {
 
             quantity.required = true;
             date.required = true;
+
+            quantity.value = 1;
         } else {
             input.style.display = 'none';
             input.required = false;
@@ -247,6 +263,8 @@ function toggleQuantityAndDateInput(element) {
 
             quantity.required = true;
             date.required = true;
+
+            quantity.value = 1;
         } else {
             quantity.disabled = true;
             date.disabled = true;

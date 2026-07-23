@@ -22,7 +22,7 @@ $where_conditions = array();
 $where_conditions[] = "a.action IN ('create_request', 'update_request', 'archive_request', 'restore_request', 'delete_request')";
 
 if ($search) {
-    $where_conditions[] = "(u.username LIKE '%$search%' OR a.details LIKE '%$search%')";
+    $where_conditions[] = "(u.staff_name LIKE '%$search%' OR a.details LIKE '%$search%')";
 }
 
 if ($action_filter) {
@@ -36,16 +36,16 @@ if ($date_filter) {
 $where_clause = "WHERE " . implode(' AND ', $where_conditions);
 
 // Get audit entries
-$sql = "SELECT a.*, u.username 
+$sql = "SELECT a.*, u.staff_name 
         FROM audit_trail a 
-        LEFT JOIN users u ON a.user_id = u.id 
+        LEFT JOIN staffs u ON a.user_id = u.id 
         $where_clause
         ORDER BY a.created_at DESC 
         LIMIT $offset, $per_page";
 $audit_entries = $conn->query($sql);
 
 // Get total count for pagination
-$count_sql = "SELECT COUNT(*) as total FROM audit_trail a LEFT JOIN users u ON a.user_id = u.id $where_clause";
+$count_sql = "SELECT COUNT(*) as total FROM audit_trail a LEFT JOIN staffs u ON a.user_id = u.id $where_clause";
 $total_result = $conn->query($count_sql);
 $total = $total_result->fetch_assoc()['total'];
 $total_pages = ceil($total / $per_page);
@@ -70,7 +70,7 @@ if (isset($_GET['ajax'])) {
                 <td><?php echo $entry['id']; ?></td>
                 <td>
                     <i class="fas fa-user me-1"></i>
-                    <?php echo htmlspecialchars($entry['username']); ?>
+                    <?php echo htmlspecialchars($entry['staff_name']); ?>
                 </td>
                 <td>
                     <span class="badge bg-<?php 
@@ -544,7 +544,7 @@ if (isset($_GET['ajax'])) {
                                 <td><?php echo $entry['id']; ?></td>
                                 <td>
                                     <i class="fas fa-user me-1"></i>
-                                    <?php echo htmlspecialchars($entry['username']); ?>
+                                    <?php echo htmlspecialchars($entry['staff_name']); ?>
                                 </td>
                                 <td>
                                     <span class="badge bg-<?php 

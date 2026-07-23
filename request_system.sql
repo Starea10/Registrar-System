@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jul 21, 2026 at 01:24 PM
+-- Generation Time: Jul 24, 2026 at 01:17 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -82,6 +82,26 @@ CREATE TABLE `requests` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `staffs`
+--
+
+CREATE TABLE `staffs` (
+  `id` int(11) NOT NULL,
+  `staff_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `staffs`
+--
+
+INSERT INTO `staffs` (`id`, `staff_name`) VALUES
+(1, 'MJ'),
+(2, 'Zyn'),
+(3, 'Pearl');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -127,6 +147,12 @@ ALTER TABLE `requests`
   ADD KEY `requester_id` (`requester_id`);
 
 --
+-- Indexes for table `staffs`
+--
+ALTER TABLE `staffs`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -156,6 +182,12 @@ ALTER TABLE `requests`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `staffs`
+--
+ALTER TABLE `staffs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
@@ -169,13 +201,13 @@ ALTER TABLE `users`
 -- Constraints for table `audit_trail`
 --
 ALTER TABLE `audit_trail`
-  ADD CONSTRAINT `audit_trail_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `audit_trail_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `staffs` (`id`);
 
 --
 -- Constraints for table `requests`
 --
 ALTER TABLE `requests`
-  ADD CONSTRAINT `requests_ibfk_1` FOREIGN KEY (`requester_id`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `requests_ibfk_1` FOREIGN KEY (`requester_id`) REFERENCES `staffs` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -863,7 +863,7 @@ $current_year_released = isset($released_by_year[$selected_year]) ?
 
             <div class="col-md-10 p-4">
                 <div class="page-header">
-                    <h2 class="page-title">Cavite State University - Naic Registrar</h2>
+                    <h2 class="page-title">Cavite State University Naic - Office of the Campus Registrar</h2>
                 </div>
                 
                 <div class="stats-grid">

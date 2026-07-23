@@ -329,7 +329,7 @@
       </div>
       
       <a href="client_view.php" class="btn-primary">
-        <i class="fas fa-eye me-2"></i>View Public Request Tracker
+        <i class="fas fa-eye me-2"></i> View Public Request Tracker
       </a>
 
       <div class="button-divider">
@@ -351,7 +351,7 @@
       </div>
 
       <button type="submit" class="btn-secondary">
-        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+        <i class="fas fa-sign-in-alt me-2"></i> Sign In
       </button>
 
       
