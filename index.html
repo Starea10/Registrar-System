@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CvSU Naic Registrar</title>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <!-- ===================================
+  NAVBAR
+  =================================== -->
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <a href="index.html" class="logo">
+          <img src="assets/images/logo.png" alt="Logo">
+          <span>CvSU Naic Registrar</span>
+        </a>
+
+        <ul class="nav-links">
+          <li><a href="#" class="active">Home</a></li>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Services</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+
+        <div class="nav-buttons">
+          <a href="login.html" class="btn-outline">→ Staff Login</a>
+          <a href="request.html" class="btn-primary">Request Document</a>
+        </div>
+
+        <div class="menu-btn">☰</div>
+      </div>
+    </nav>
+  </header>
+
+<!-- ===================================
+HERO SECTION (Updated with Tracker Button)
+=================================== -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-text">
+      <p class="small-title">OFFICE OF THE REGISTRAR</p>
+      <h1>Fast, Secure and Convenient Document Request System</h1>
+      <p>Request official academic documents online, track their progress, and receive updates in real time without visiting the Registrar's Office.</p>
+      <div class="hero-buttons">
+        <a href="request.html" class="btn-primary" style="background: var(--secondary); color: var(--text);">Get Started</a>
+        <a href="track.html" class="btn-primary" style="background: var(--primary); color: #fff;">🔍 Track Request</a>
+        <a href="#services" class="btn-outline">Learn More</a>
+      </div>
+    </div>
+    <div class="hero-image">
+      <img src="assets/images/hero.png" alt="Students">
+    </div>
+  </div>
+</section>
+
+  <!-- ===================================
+  OFFICE
+  =================================== -->
+  <section class="office">
+    <div class="container">
+      <h2>Office At A Glance</h2>
+      <p class="section-description">Providing efficient academic record services for every CvSU Naic student.</p>
+      <div class="office-grid">
+        <div class="office-card">
+          <h3>Office Hours</h3>
+          <p>Monday - Friday<br>8:00 AM - 5:00 PM</p>
+        </div>
+        <div class="office-card">
+          <h3>Email</h3>
+          <p>registrar@cvsu.edu.ph</p>
+        </div>
+        <div class="office-card">
+          <h3>Location</h3>
+          <p>CvSU Naic Campus</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<!-- ===================================
+AVAILABLE DOCUMENTS SECTION (Enhanced Cards)
+=================================== -->
+<section class="services" id="services">
+  <div class="container">
+    <h2>Available Documents</h2>
+    <p class="section-description">Select a document to view details, requirements, and processing times, or request directly.</p>
+    
+    <div class="services-grid">
+      <!-- Certificate of Enrollment -->
+      <div class="service-card">
+        <div class="icon">📄</div>
+        <h3>Certificate of Enrollment</h3>
+        <p class="doc-summary">Official proof of active registration, enrolled units, and current academic standing.</p>
+        <div class="doc-badge">⏱ Processing: 1-2 Working Days</div>
+        <div class="card-actions">
+          <button class="btn-info" onclick="openDocModal('enrollment')">ℹ️ View Info</button>
+          <a href="request.html?doc=Certificate%20of%20Enrollment" class="btn-card-request">Request Document →</a>
+        </div>
+      </div>
+
+      <!-- Transcript of Records -->
+      <div class="service-card">
+        <div class="icon">🎓</div>
+        <h3>Transcript of Records</h3>
+        <p class="doc-summary">Complete academic history detailing all subjects, grades, units, and degree status.</p>
+        <div class="doc-badge">⏱ Processing: 5-7 Working Days</div>
+        <div class="card-actions">
+          <button class="btn-info" onclick="openDocModal('tor')">ℹ️ View Info</button>
+          <a href="request.html?doc=Transcript%20of%20Records" class="btn-card-request">Request Document →</a>
+        </div>
+      </div>
+
+      <!-- Certificate of Grades -->
+      <div class="service-card">
+        <div class="icon">📜</div>
+        <h3>Certificate of Grades</h3>
+        <p class="doc-summary">Official record of evaluation grades achieved for a specific semester or academic year.</p>
+        <div class="doc-badge">⏱ Processing: 2-3 Working Days</div>
+        <div class="card-actions">
+          <button class="btn-info" onclick="openDocModal('grades')">ℹ️ View Info</button>
+          <a href="request.html?doc=Certificate%20of%20Grades" class="btn-card-request">Request Document →</a>
+        </div>
+      </div>
+
+      <!-- Authentication (CAV) -->
+      <div class="service-card">
+        <div class="icon">✔</div>
+        <h3>Authentication (CAV)</h3>
+        <p class="doc-summary">Certified true copy and verification of official school records for legal or abroad use.</p>
+        <div class="doc-badge">⏱ Processing: 3-5 Working Days</div>
+        <div class="card-actions">
+          <button class="btn-info" onclick="openDocModal('authentication')">ℹ️ View Info</button>
+          <a href="request.html?doc=Authentication" class="btn-card-request">Request Document →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================
+DOCUMENT INFO MODAL (Popup Viewer)
+=================================== -->
+<div id="docModal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeDocModal()">&times;</button>
+    <div class="modal-header">
+      <span id="modalIcon" class="modal-icon">📄</span>
+      <h2 id="modalTitle">Document Title</h2>
+    </div>
+    <div class="modal-body">
+      <p id="modalDescription"></p>
+      
+      <div class="info-block">
+        <h4>📋 Requirements:</h4>
+        <ul id="modalRequirements"></ul>
+      </div>
+
+      <div class="info-block">
+        <h4>⏳ Processing Time:</h4>
+        <p id="modalProcessing"></p>
+      </div>
+
+      <div class="info-block">
+        <h4>💡 Note:</h4>
+        <p id="modalNote"></p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a id="modalRequestBtn" href="#" class="btn-primary" style="background: var(--secondary); color: var(--text); width: 100%; text-align: center;">Request This Document Now →</a>
+    </div>
+  </div>
+</div>
+
+  <!-- ===================================
+  HOW IT WORKS
+  =================================== -->
+  <section class="steps">
+    <div class="container">
+      <h2>How It Works</h2>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="number">1</div>
+          <h3>Submit Request</h3>
+          <p>Fill up the online form.</p>
+        </div>
+        <div class="step">
+          <div class="number">2</div>
+          <h3>Processing</h3>
+          <p>Registrar reviews your request.</p>
+        </div>
+        <div class="step">
+          <div class="number">3</div>
+          <h3>Claim</h3>
+          <p>Receive email notification.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================
+  INFORMATION
+  =================================== -->
+  <section class="information">
+    <div class="container">
+      <div class="info-card">
+        <h3>Requirements</h3>
+        <p>Bring a valid school ID when claiming your requested documents.</p>
+      </div>
+      <div class="info-card">
+        <h3>Processing Time</h3>
+        <p>Usually 3-5 working days depending on document type.</p>
+      </div>
+      <div class="info-card">
+        <h3>Need Help?</h3>
+        <p>Contact the Registrar during office hours.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================
+  FOOTER
+  =================================== -->
+  <footer>
+    <div class="container footer-grid">
+      <div>
+        <h3>CvSU Naic Registrar</h3>
+        <p>Providing quality academic services.</p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p>registrar@cvsu.edu.ph</p>
+        <p>(046) 123-4567</p>
+      </div>
+    </div>
+    <div class="copyright">© 2026 CvSU Naic Registrar</div>
+  </footer>
+
+  <button id="topBtn">↑</button>
+  <script src="js/main.js"></script>
+</body>
+</html>
