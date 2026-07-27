@@ -10,17 +10,20 @@ use PHPMailer\PHPMailer\SMTP;
 if(isset($_POST['send'])){
 $mail = new PHPMailer(true); // Enable exceptions
 
+$email_address = "" // CHANGE THIS TO REGISTRAR'S OFFICE ACCOUNT!!!
+$password = "" // CHANGE THIS TO REGISTRAR'S OFFICE ACCOUNT!!!
+
 // SMTP Configuration
 $mail->isSMTP();
 $mail->Host = 'smtp.gmail.com'; // Your SMTP server
 $mail->SMTPAuth = true;
-$mail->Username = 'gtabang310@gmail.com'; // Your Gmail email
-$mail->Password = 'yutgpoucfligybwh'; // Your Gmail password
+$mail->Username = ''; 
+$mail->Password = ''; 
 $mail->SMTPSecure = 'ssl';
 $mail->Port = 465;
 
 // Sender and recipient settings
-$mail->setFrom('gtabang310@gmail.com', 'Registrar');
+$mail->setFrom($email_address, 'Registrar');
 $mail->addAddress($_POST['email']);
 
 // Sending plain text email
@@ -34,12 +37,13 @@ Your request has been successfully submitted and is now being processed.
 
 Status: Request Submitted
 
-Your requested document will be available for claiming on [Specific Date].
+Your requested document will be available for claiming at a specific date so stay updated.
 
 Please bring a valid ID when claiming your document. If you have any questions, feel free to contact the University Registrar's Office.
 
 Thank you.
 
+Facebook Page: CvSU Naic Registrar's Office
 Contact No.: 0976 592 7310
 Email: registrar@cvsu-naic.edu.ph
 "
