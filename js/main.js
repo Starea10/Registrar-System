@@ -303,3 +303,25 @@ window.addEventListener('click', (e) => {
   }
 });
 
+/////////////////////////////////////////////////////////
+// HERO-iMAGE SLIDE
+////////////////////////////////////////////////////////
+
+document.addEventListener("DOMContentLoaded", () => {
+    const slides = document.querySelectorAll(".hero-image .slide");
+    let current = 0;
+
+    function showSlide(index) {
+        slides.forEach(slide => slide.classList.remove("active"));
+        slides[index].classList.add("active");
+    }
+
+    // Show the first slide
+    showSlide(current);
+
+    // Change slides every 3 seconds
+    setInterval(() => {
+        current = (current + 1) % slides.length;
+        showSlide(current);
+    }, 3000);
+});

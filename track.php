@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Request | CvSU Naic Registrar</title>
+  <link rel="icon" href="assets/images/logo.png" type="image/x-icon">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/request.css">
+</head>
+
+<body style="background: var(--background);">
+  <header style="position: relative; box-shadow: none;">
+    <nav>
+      <div class="container nav">
+        <a href="index.html" class="logo">
+          <img src="assets/images/logo.png" alt="Logo">
+          <span>CvSU Naic Registrar</span>
+        </a>
+        <a href="index.html" class="back">← Back Home</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container" style="max-width: 700px; margin: 40px auto 80px;">
+    <div class="page-title">
+      <h1>Document Request Tracker</h1>
+      <p>Enter your Reference Control Code to check the current status of your application.</p>
+    </div>
+
+    <!-- Search Card -->
+    <div style="background: white; padding: 35px; border-radius: var(--radius); box-shadow: var(--shadow);">
+      <form id="trackerForm" onsubmit="handleTrack(event)">
+        <div class="input-group">
+          <label style="font-weight: 600; font-size: 1rem;">Reference Control Code</label>
+          <div style="display: flex; gap: 12px; margin-top: 8px;">
+            <input type="text" id="refCode" placeholder="e.g. CVSU-2026-8942" required style="flex: 1; padding: 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem;">
+            <button type="submit" class="btn-primary" style="background: var(--secondary); color: var(--text); padding: 14px 28px; white-space: nowrap;">Track Status</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Status Display Card -->
+      <div id="statusResult" style="display: none; margin-top: 35px; border-top: 2px dashed var(--border); padding-top: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div>
+            <span style="font-size: 0.85rem; color: var(--gray); text-transform: uppercase; font-weight: 700;">Reference Code</span>
+            <h3 id="resRef" style="color: var(--primary); margin: 0;">CVSU-2026-8942</h3>
+          </div>
+          <span id="statusBadge" style="background: #FEF3C7; color: #92400E; padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 0.9rem;">Processing</span>
+        </div>
+
+        <div class="summary" style="margin-bottom: 25px;">
+          <p><strong>Document:</strong> <span id="resDoc">Transcript of Records</span></p>
+          <p><strong>Student ID:</strong> <span id="resStudent">2023-10492</span></p>
+          <p><strong>Date Requested:</strong> <span id="resDate">July 20, 2026</span></p>
+          <p><strong>Est. Completion:</strong> <span id="resEst">July 27, 2026</span></p>
+        </div>
+
+        <!-- Tracker Progress Steps -->
+        <div style="display: flex; justify-content: space-between; position: relative; margin-top: 30px; text-align: center;">
+          <div style="flex: 1;">
+            <div style="width: 32px; height: 32px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: bold; font-size: 0.85rem;">✓</div>
+            <p style="font-size: 0.8rem; font-weight: 600; color: var(--primary);">Submitted</p>
+          </div>
+          <div style="flex: 1;">
+            <div style="width: 32px; height: 32px; background: var(--secondary); color: var(--text); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: bold; font-size: 0.85rem;">2</div>
+            <p style="font-size: 0.8rem; font-weight: 700; color: var(--text);">Processing</p>
+          </div>
+          <div style="flex: 1;">
+            <div style="width: 32px; height: 32px; background: var(--border); color: var(--gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: bold; font-size: 0.85rem;">3</div>
+            <p style="font-size: 0.8rem; font-weight: 500; color: var(--gray);">Ready for Pickup</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function handleTrack(e) {
+      e.preventDefault();
+      const code = document.getElementById('refCode').value.trim();
+      if(code) {
+        document.getElementById('resRef').innerText = code.toUpperCase();
+        document.getElementById('statusResult').style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>

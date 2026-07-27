@@ -86,6 +86,7 @@ function submitRequest() {
       </div>
     `;
   }, 1800);
+  clearStorage();
 }
 
 /*=====================================

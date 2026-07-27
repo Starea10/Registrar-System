@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CvSU Naic Registrar</title>
+  <link rel="icon" href="assets/images/logo.png" type="image/x-icon">
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/style.css">
+  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"> -->
+
 </head>
 
 <body>
@@ -23,16 +26,16 @@
         </a>
 
         <ul class="nav-links">
-          <li><a href="#" class="active">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="#">Services</a></li>
+          <li><a href="#hero" class="active">Home</a></li>
+          <li><a href="#office">About</a></li>
+          <li><a href="#services">Services</a></li>
           <li><a href="#">FAQ</a></li>
-          <li><a href="#">Contact</a></li>
+          <li><a href="#footer  ">Contact</a></li>
         </ul>
 
         <div class="nav-buttons">
-          <a href="login.html" class="btn-outline">→ Staff Login</a>
-          <a href="request.html" class="btn-primary">Request Document</a>
+          <a href="login.php" class="btn-outline">→ Staff Login</a>
+          <a href="request.php" class="btn-primary">Request Document</a>
         </div>
 
         <div class="menu-btn">☰</div>
@@ -43,20 +46,25 @@
 <!-- ===================================
 HERO SECTION (Updated with Tracker Button)
 =================================== -->
-<section class="hero">
+<section class="hero" id="hero">
   <div class="container hero-grid">
     <div class="hero-text">
-      <p class="small-title">OFFICE OF THE REGISTRAR</p>
-      <h1>Fast, Secure and Convenient Document Request System</h1>
+      <p class="small-title">CAVITE STATE UNIVERSITY NAIC</p>
+      <h1>Office of the Campus Registrar</h1>
       <p>Request official academic documents online, track their progress, and receive updates in real time without visiting the Registrar's Office.</p>
       <div class="hero-buttons">
-        <a href="request.html" class="btn-primary" style="background: var(--secondary); color: var(--text);">Get Started</a>
-        <a href="track.html" class="btn-primary" style="background: var(--primary); color: #fff;">🔍 Track Request</a>
+        <a href="request.php" class="btn-primary" style="background: var(--secondary); color: var(--text);">Get Started</a>
+        <a href="track.php" class="btn-primary" style="background: var(--primary); color: #fff;">🔍 Track Request</a>
         <a href="#services" class="btn-outline">Learn More</a>
       </div>
     </div>
     <div class="hero-image">
-      <img src="assets/images/hero.png" alt="Students">
+      <img src="assets/images/hero.jpg" class="slide active" alt="Students">
+      <img src="assets/images/hero2.jpg" class="slide" alt="Students">
+      <img src="assets/images/hero3.jpg" class="slide" alt="Students">
+      <img src="assets/images/hero4.jpg" class="slide" alt="Students">
+      <img src="assets/images/hero5.jpg" class="slide" alt="Students">
+
     </div>
   </div>
 </section>
@@ -64,22 +72,24 @@ HERO SECTION (Updated with Tracker Button)
   <!-- ===================================
   OFFICE
   =================================== -->
-  <section class="office">
+  <section class="office" id="office">
     <div class="container">
       <h2>Office At A Glance</h2>
       <p class="section-description">Providing efficient academic record services for every CvSU Naic student.</p>
       <div class="office-grid">
         <div class="office-card">
           <h3>Office Hours</h3>
-          <p>Monday - Friday<br>8:00 AM - 5:00 PM</p>
+          <p>Monday - Thursday<br>7:00 AM - 6:00 PM</p>
         </div>
         <div class="office-card">
-          <h3>Email</h3>
-          <p>registrar@cvsu.edu.ph</p>
+          <h3>Contact Information</h3>
+          <p>registrar@cvsu-naic.edu.ph</p>
+          <p>0976 592 7310</p>
         </div>
         <div class="office-card">
           <h3>Location</h3>
-          <p>CvSU Naic Campus</p>
+          <p>CvSU Naic Campus<br>Brgy. Bucana Malaki, Naic, Cavite, 4110.</p>
+
         </div>
       </div>
     </div>
@@ -102,7 +112,7 @@ AVAILABLE DOCUMENTS SECTION (Enhanced Cards)
         <div class="doc-badge">⏱ Processing: 1-2 Working Days</div>
         <div class="card-actions">
           <button class="btn-info" onclick="openDocModal('enrollment')">ℹ️ View Info</button>
-          <a href="request.html?doc=Certificate%20of%20Enrollment" class="btn-card-request">Request Document →</a>
+          <a href="request.php?doc=Certificate%20of%20Enrollment" class="btn-card-request">Request Document →</a>
         </div>
       </div>
 
@@ -114,7 +124,7 @@ AVAILABLE DOCUMENTS SECTION (Enhanced Cards)
         <div class="doc-badge">⏱ Processing: 5-7 Working Days</div>
         <div class="card-actions">
           <button class="btn-info" onclick="openDocModal('tor')">ℹ️ View Info</button>
-          <a href="request.html?doc=Transcript%20of%20Records" class="btn-card-request">Request Document →</a>
+          <a href="request.php?doc=Transcript%20of%20Records" class="btn-card-request">Request Document →</a>
         </div>
       </div>
 
@@ -126,7 +136,7 @@ AVAILABLE DOCUMENTS SECTION (Enhanced Cards)
         <div class="doc-badge">⏱ Processing: 2-3 Working Days</div>
         <div class="card-actions">
           <button class="btn-info" onclick="openDocModal('grades')">ℹ️ View Info</button>
-          <a href="request.html?doc=Certificate%20of%20Grades" class="btn-card-request">Request Document →</a>
+          <a href="request.php?doc=Certificate%20of%20Grades" class="btn-card-request">Request Document →</a>
         </div>
       </div>
 
@@ -138,7 +148,7 @@ AVAILABLE DOCUMENTS SECTION (Enhanced Cards)
         <div class="doc-badge">⏱ Processing: 3-5 Working Days</div>
         <div class="card-actions">
           <button class="btn-info" onclick="openDocModal('authentication')">ℹ️ View Info</button>
-          <a href="request.html?doc=Authentication" class="btn-card-request">Request Document →</a>
+          <a href="request.php?doc=Authentication" class="btn-card-request">Request Document →</a>
         </div>
       </div>
     </div>
@@ -216,7 +226,7 @@ DOCUMENT INFO MODAL (Popup Viewer)
       </div>
       <div class="info-card">
         <h3>Processing Time</h3>
-        <p>Usually 3-5 working days depending on document type.</p>
+        <p>Usually 3-20 working days depending on document type.</p>
       </div>
       <div class="info-card">
         <h3>Need Help?</h3>
@@ -229,7 +239,7 @@ DOCUMENT INFO MODAL (Popup Viewer)
   FOOTER
   =================================== -->
   <footer>
-    <div class="container footer-grid">
+    <div class="container footer-grid" id="footer">
       <div>
         <h3>CvSU Naic Registrar</h3>
         <p>Providing quality academic services.</p>
@@ -237,15 +247,15 @@ DOCUMENT INFO MODAL (Popup Viewer)
       <div>
         <h4>Quick Links</h4>
         <ul>
-          <li><a href="#">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="#">Contact</a></li>
+          <li><a href="#hero" class="active">Home</a></li>
+          <li><a href="#office">About</a></li>
+          <li><a href="#footer  ">Contact</a></li>
         </ul>
       </div>
       <div>
         <h4>Contact</h4>
-        <p>registrar@cvsu.edu.ph</p>
-        <p>(046) 123-4567</p>
+        <p>registrar@cvsu-naic.edu.ph</p>
+        <p>0976 592 7310</p>
       </div>
     </div>
     <div class="copyright">© 2026 CvSU Naic Registrar</div>
@@ -254,4 +264,5 @@ DOCUMENT INFO MODAL (Popup Viewer)
   <button id="topBtn">↑</button>
   <script src="js/main.js"></script>
 </body>
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script> -->
 </html>

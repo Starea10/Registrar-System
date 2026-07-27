@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-green: #1d6b41;
+            --primary-green-dark: #155230;
+            --accent-yellow: #f9e154;
+            --accent-yellow-hover: #e5cd40;
+            --bg-light: #f4f1e9;
+            --footer-bg: #1e2233;
+            --text-dark: #2d3748;
+            --text-light: #718096;
+            --border-color: #e2e8f0;
+            
+            --status-ready-bg: #e6ffed;
+            --status-ready-text: #22863a;
+            --status-process-bg: #e1effe;
+            --status-process-text: #1a56db;
+            --status-pending-bg: #fff5eb;
+            --status-pending-text: #b45309;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Merriweather', serif;
+            color: var(--text-dark);
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--primary-green);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 4px;
+            color: var(--accent-yellow);
+        }
+
+        .logo-text h2 {
+            color: white;
+            font-size: 1.1rem;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .logo-text p {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.6rem;
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            line-height: 1;
+        }
+
+        .mobile-toggle:focus {
+            outline: 1px solid var(--accent-yellow);
+        }
+
+        .btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: 4px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-yellow {
+            background-color: var(--accent-yellow);
+            color: var(--text-dark);
+        }
+
+        .btn-yellow:hover {
+            background-color: var(--accent-yellow-hover);
+        }
+
+        .btn-outline {
+            border: 1px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: white;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .btn-green {
+            background-color: var(--primary-green);
+            color: white;
+        }
+
+        /* View Container */
+        .view-section {
+            display: none;
+            min-height: calc(100vh - 70px);
+        }
+        .view-section.active {
+            display: block;
+        }
+
+        /* Header Blocks for Subpages */
+        .page-header {
+            background-color: var(--primary-green);
+            color: white;
+            padding: 3rem 5%;
+        }
+
+        .page-header h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Home View Specifics */
+        .hero {
+            background-color: var(--primary-green);
+            color: white;
+            padding: 4rem 5%;
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .hero-content {
+            flex: 1;
+        }
+
+        .hero-content h1 {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero-buttons {
+            display: flex; 
+            gap: 1rem;
+        }
+
+        .hero-stats {
+            background: rgba(255,255,255,0.1);
+            padding: 2rem;
+            border-radius: 8px;
+            flex: 0 0 350px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-item h3 {
+            color: white;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .stat-item p {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .section-container {
+            padding: 4rem 5%;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .card h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .tag {
+            background: var(--bg-light);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-dark);
+        }
+
+        /* Forms & Inputs */
+        .input-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            max-width: 600px;
+            margin-top: 1.5rem;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 4px;
+        }
+        .search-bar input::placeholder { color: rgba(255,255,255,0.6); }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin: -2rem 5% 4rem 5%;
+            position: relative;
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        th {
+            color: var(--text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-ready { background: var(--status-ready-bg); color: var(--status-ready-text); border: 1px solid #b7eb8f; }
+        .status-process { background: var(--status-process-bg); color: var(--status-process-text); border: 1px solid #91caff; }
+        .status-pending { background: var(--status-pending-bg); color: var(--status-pending-text); border: 1px solid #ffd591; }
+
+        /* Request Form Stepper */
+        .stepper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem;
+            background: white;
+            margin: -2rem 5% 2rem 5%;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .step.active {
+            color: var(--text-dark);
+        }
+
+        .step-num {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .step.active .step-num {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        .step-line {
+            height: 1px;
+            width: 40px;
+            background: var(--border-color);
+        }
+
+        .form-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 800px;
+            margin: 0 auto 4rem auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* Login Page */
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 70px);
+            flex-direction: column;
+            gap: 1rem;
+            padding: 2rem 5%;
+        }
+
+        .login-card {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .login-header {
+            background: var(--primary-green);
+            padding: 2rem;
+            color: white;
+        }
+
+        .login-body {
+            padding: 2rem;
+        }
+
+        .demo-creds {
+            background: var(--bg-light);
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 1.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--footer-bg);
+            color: white;
+            padding: 3rem 5%;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        footer h4 {
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        footer ul { list-style: none; }
+        footer ul li { margin-bottom: 0.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.8); }
+
+        /* ================= MOBILE RESPONSIVENESS ================= */
+        @media (max-width: 768px) {
+            /* Mobile Nav Header */
+            nav {
+                position: relative;
+                padding: 1rem 5%;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background-color: var(--primary-green-dark);
+                flex-direction: column;
+                padding: 1.5rem 5%;
+                gap: 1rem;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+                border-top: 1px solid rgba(255,255,255,0.1);
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .nav-links.mobile-open {
+                display: flex;
+            }
+
+            .nav-links a {
+                padding: 0.5rem 0;
+                font-size: 1rem;
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+            }
+
+            .nav-links .btn {
+                width: 100%;
+                margin-top: 0.5rem;
+            }
+
+            /* Hero & Sections */
+            .hero {
+                flex-direction: column;
+                padding: 3rem 5%;
+                text-align: center;
+            }
+            .hero-content h1 {
+                font-size: 2.2rem;
+            }
+            .hero-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .hero-stats {
+                flex: auto;
+                width: 100%;
+                text-align: left;
+            }
+
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .table-container {
+                margin: -2rem 0 2rem 0;
+                border-radius: 0;
+            }
+
+            .stepper {
+                flex-direction: column;
+                align-items: flex-start;
+                margin: -1rem 0 2rem 0;
+                gap: 1rem;
+                border-radius: 0;
+            }
+            .step-line {
+                display: none;
+            }
+
+            .form-card {
+                margin: 0 0 2rem 0;
+                border-radius: 0;
+                padding: 1.5rem;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            footer {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            footer > div {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            footer ul li {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo-area">
+            <div class="logo-icon">🎓</div>
+            <div class="logo-text">
+                <h2>Registrar Portal</h2>
+                <p>University of the Philippines</p>
+            </div>
+        </div>
+
+        <button class="mobile-toggle" id="mobileToggle" onclick="toggleMobileMenu()" aria-label="Toggle Navigation">☰</button>
+
+        <div class="nav-links" id="navLinks">
+            <a onclick="switchView('home-view')">Home</a>
+            <a onclick="switchView('request-view')">Request a Document</a>
+            <a onclick="switchView('track-view')" class="btn btn-outline" style="border: none; background: rgba(255,255,255,0.1); padding: 0.4rem 1rem;">Track My Request</a>
+            <a onclick="switchView('login-view')">→ Staff Sign In</a>
+            <button class="btn btn-yellow" onclick="switchView('request-view')">Request Now</button>
+        </div>
+    </nav>
+
+    <main id="app">
+        <!-- ================= HOME VIEW ================= -->
+        <section id="home-view" class="view-section active">
+            <div class="hero">
+                <div class="hero-content">
+                    <p style="color: var(--accent-yellow); font-weight: 600; margin-bottom: 1rem;">★ Office of the Campus Registrar</p>
+                    <h1>Request Your<br>Academic<br>Documents Online</h1>
+                    <p style="margin-bottom: 2rem; font-size: 1.1rem; opacity: 0.9;">Submit, track, and receive your transcripts, certificates, and official records — without the queue.</p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-yellow" onclick="switchView('request-view')">Request a Document →</button>
+                        <button class="btn btn-outline" onclick="switchView('track-view')">Track My Request 🔍</button>
+                    </div>
+                </div>
+                <div class="hero-stats">
+                    <p style="font-size: 0.75rem; text-transform: uppercase; margin-bottom: 1rem; opacity: 0.8;">Office At A Glance</p>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <h3>--</h3>
+                            <p>Requests Processed</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>--%</h3>
+                            <p>On-Time Release</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>--</h3>
+                            <p>Document Types</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>- min</h3>
+                            <p>Avg. Submission Time</p>
+                        </div>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 1rem 0;">
+                    <p style="font-size: 0.75rem; opacity: 0.8;">OFFICE HOURS<br>Monday - Thursday • 7:00 AM - 6:00 PM</p>
+                </div>
+            </div>
+
+            <div class="section-container">
+                <p style="color: var(--primary-green); font-weight: 600; font-size: 0.8rem; text-transform: uppercase;">Services Offered</p>
+                <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Documents You Can Request</h2>
+                <p style="color: var(--text-light); margin-bottom: 2rem;">All major registrar documents are available online. Select what you need.</p>
+                
+                <div class="services-grid">
+                    <div class="card">
+                        <h3>📄 Transcript of Records</h3>
+                        <p>Official academic records for employment, further studies, or government requirements.</p>
+                        <span class="tag">20 Working Days</span>
+                    </div>
+                    <div class="card">
+                        <h3>📋 Certificate of Enrollment</h3>
+                        <p>Proof of active enrollment for scholarships, loans, or institutional use.</p>
+                        <span class="tag">3 Working Days</span>
+                    </div>
+                    <div class="card">
+                        <h3>🎓 Certificate of Graduation</h3>
+                        <p>Official document confirming completion of your degree program.</p>
+                        <span class="tag">3-5 Working Days</span>
+                    </div>
+                    <div class="card">
+                        <h3>⚖️ Good Moral Certificate</h3>
+                        <p>Character certification for employment, transfer, or professional applications.</p>
+                        <span class="tag">3-5 Working Days</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TRACK VIEW ================= -->
+        <section id="track-view" class="view-section">
+            <div class="page-header">
+                <a onclick="switchView('home-view')" style="color: rgba(255,255,255,0.8); text-decoration: none; cursor: pointer; font-size: 0.9rem;">← Back to Home</a>
+                <h1 style="margin-top: 1rem;">Track Your Request</h1>
+                <p>Enter your reference number to check the status of your document request.</p>
+                <div class="search-bar">
+                    <input type="text" placeholder="e.g. REQ-2024-0891">
+                    <button class="btn btn-yellow">Search</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 style="font-family: 'Inter', sans-serif; font-size: 1.1rem;">Recent Requests</h3>
+                    <span style="color: var(--text-light); font-size: 0.8rem;">Demo data</span>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Reference No.</th>
+                                <th>Document</th>
+                                <th>Submitted</th>
+                                <th>Est. Ready</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="color: var(--primary-green); font-family: monospace;">REQ-2024-0891</td>
+                                <td>Official Transcript of Records</td>
+                                <td>Jul 15, 2024</td>
+                                <td>Jul 19, 2024</td>
+                                <td><span class="status-pill status-ready">✓ Ready for Pickup</span></td>
+                            </tr>
+                            <tr>
+                                <td style="color: var(--primary-green); font-family: monospace;">REQ-2024-0834</td>
+                                <td>Certificate of Enrollment</td>
+                                <td>Jul 10, 2024</td>
+                                <td>Jul 22, 2024</td>
+                                <td><span class="status-pill status-process">↻ Processing</span></td>
+                            </tr>
+                            <tr>
+                                <td style="color: var(--primary-green); font-family: monospace;">REQ-2024-0801</td>
+                                <td>Good Moral Certificate</td>
+                                <td>Jul 3, 2024</td>
+                                <td>Jul 10, 2024</td>
+                                <td><span class="status-pill status-process">✓ Released</span></td>
+                            </tr>
+                            <tr>
+                                <td style="color: var(--primary-green); font-family: monospace;">REQ-2024-0788</td>
+                                <td>Certificate of Graduation</td>
+                                <td>Jul 1, 2024</td>
+                                <td>Jul 8, 2024</td>
+                                <td><span class="status-pill status-pending">⚠ Pending Review</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="padding: 1.5rem; text-align: center;">
+                    <button class="btn btn-green" onclick="switchView('request-view')">Submit a New Request →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= REQUEST VIEW ================= -->
+        <section id="request-view" class="view-section">
+            <div class="page-header">
+                <a onclick="switchView('home-view')" style="color: rgba(255,255,255,0.8); text-decoration: none; cursor: pointer; font-size: 0.9rem;">← Back to Home</a>
+                <h1 style="margin-top: 1rem;">Request a Document</h1>
+                <p>Fill out all required fields. Fields marked with * are required.</p>
+            </div>
+
+            <div class="stepper">
+                <div class="step active">
+                    <div class="step-num">1</div> Personal Info
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">2</div> Document Details
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-num">3</div> Delivery & Confirm
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h3 style="font-family: 'Inter', sans-serif; margin-bottom: 1.5rem; font-size: 1.2rem;">Student Information</h3>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Last Name *</label>
+                        <input type="text" placeholder="e.g. Dela Cruz">
+                    </div>
+                    <div class="input-group">
+                        <label>First Name *</label>
+                        <input type="text" placeholder="e.g. Juan">
+                    </div>
+                    <div class="input-group">
+                        <label>Middle Name</label>
+                        <input type="text" placeholder="e.g. Santos">
+                    </div>
+                    <div class="input-group">
+                        <label>Student Number *</label>
+                        <input type="text" placeholder="e.g. 2019-12345">
+                    </div>
+                    <div class="input-group">
+                        <label>Degree Program / Course *</label>
+                        <input type="text" placeholder="e.g. BS Computer Science">
+                    </div>
+                    <div class="input-group">
+                        <label>Year Graduated / Last Attended</label>
+                        <input type="text" placeholder="e.g. 2023">
+                    </div>
+                </div>
+                <div style="text-align: right; margin-top: 1rem;">
+                    <button class="btn btn-green" style="opacity: 0.6; cursor: not-allowed; width: auto;">Continue ></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= LOGIN VIEW ================= -->
+        <section id="login-view" class="view-section">
+            <div class="login-wrapper">
+                <div class="login-card">
+                    <div class="login-header">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                            <span style="border: 1px solid var(--accent-yellow); color: var(--accent-yellow); padding: 4px; border-radius: 4px;">🔒</span>
+                            <div>
+                                <h3 style="color: white; font-family: 'Inter', sans-serif; font-size: 1rem;">Registrar Portal</h3>
+                                <p style="font-size: 0.75rem; color: rgba(255,255,255,0.8);">Staff Access Only</p>
+                            </div>
+                        </div>
+                        <h2 style="color: white; font-family: 'Inter', sans-serif; font-size: 1.5rem;">Sign In to Dashboard</h2>
+                        <p style="font-size: 0.85rem; color: rgba(255,255,255,0.8); margin-top: 5px;">Authorized personnel only. All sessions are logged.</p>
+                    </div>
+                    <div class="login-body">
+                        <div class="input-group">
+                            <label>Username</label>
+                            <input type="text" placeholder="Enter your username">
+                        </div>
+                        <div class="input-group">
+                            <label>Password</label>
+                            <div style="position: relative;">
+                                <input type="password" placeholder="Enter your password">
+                                <span style="position: absolute; right: 10px; top: 12px; font-size: 0.8rem; color: var(--text-light); cursor: pointer;">Show</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-green" style="width: 100%; margin-top: 1rem; padding: 0.75rem; opacity: 0.7;">→ Sign In</button>
+                        
+                        <div class="demo-creds">
+                            Demo credentials<br>
+                            admin / registrar2024<br>
+                            staff01 / staff2024
+                        </div>
+                    </div>
+                </div>
+                <a onclick="switchView('home-view')" style="color: var(--text-light); text-decoration: none; cursor: pointer; font-size: 0.9rem;">← Back to Public Portal</a>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                <span style="color: var(--accent-yellow);">🎓</span>
+                <h3 style="color: white; font-family: 'Inter', sans-serif; font-size: 1.1rem;">Registrar's Office</h3>
+            </div>
+            <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">University of the Philippines - Diliman<br>Quezon City, Philippines 1101</p>
+        </div>
+        <div>
+            <h4>QUICK LINKS</h4>
+            <ul>
+                <li><a href="#" style="color: inherit; text-decoration: none;">Request a Document</a></li>
+                <li><a href="#" style="color: inherit; text-decoration: none;">Track My Request</a></li>
+                <li><a href="#" style="color: inherit; text-decoration: none;">Document Requirements</a></li>
+                <li><a href="#" style="color: inherit; text-decoration: none;">Fees and Payment</a></li>
+                <li><a href="#" style="color: inherit; text-decoration: none;">FAQs</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>CONTACT</h4>
+            <ul>
+                <li>📞 (02) 8981-8500</li>
+                <li>✉️ registrar@university.edu.ph</li>
+                <li>📍 Admin Bldg. Room 101</li>
+                <li>🕒 Mon-Fri, 8AM - 5PM</li>
+            </ul>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navLinks = document.getElementById('navLinks');
+
+        function toggleMobileMenu() {
+            navLinks.classList.toggle('mobile-open');
+            const isOpen = navLinks.classList.contains('mobile-open');
+            mobileToggle.innerHTML = isOpen ? '✕' : '☰';
+        }
+
+        function switchView(viewId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.view-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show target section
+            const target = document.getElementById(viewId);
+            if(target) {
+                target.classList.add('active');
+                window.scrollTo(0, 0);
+            }
+
+            // Close mobile menu if open
+            if(navLinks.classList.contains('mobile-open')) {
+                toggleMobileMenu();
+            }
+        }
+    </script>
+</body>
+</html>
