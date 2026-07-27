@@ -17,8 +17,8 @@ $password = "" // CHANGE THIS TO REGISTRAR'S OFFICE ACCOUNT!!!
 $mail->isSMTP();
 $mail->Host = 'smtp.gmail.com'; // Your SMTP server
 $mail->SMTPAuth = true;
-$mail->Username = ''; 
-$mail->Password = ''; 
+$mail->Username = $email_address; 
+$mail->Password = $password; 
 $mail->SMTPSecure = 'ssl';
 $mail->Port = 465;
 
