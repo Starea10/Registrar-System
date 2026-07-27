@@ -221,24 +221,32 @@ const documentInfo = {
     icon: "📄",
     description: "Serves as official certification that the student is currently enrolled in Cavite State University - Naic Campus.",
     requirements: [
-      "Valid Student ID or Library Card",
+      "Valid Student ID",
+      "Currently Enrolled in a semester",
       "Cleared accounts/no outstanding library or department balance",
       "Official receipt of current semester tuition/fees (if applicable)"
     ],
-    processing: "1 to 2 Working Days",
-    note: "Must be requested by the student or an authorized representative with a formal authorization letter."
+    processing: "2-3 Working Days",
+    note: "Must be requested by the student or an authorized representative with a formal authorization letter and photocopy of the student's valid id."
   },
   tor: {
     title: "Transcript of Records",
     icon: "🎓",
     description: "Official transcript displaying complete scholastic records, coursework, grades, and cumulative GPA.",
     requirements: [
+      "For First Request:",  
       "Duly accomplished Registrar Clearance Form",
-      "2x2 recent ID picture (White background with name tag)",
-      "Photocopy of Honorable Dismissal (for transfer students)"
+      "Student Has Graduated",
+      "2x2 recent ID picture (White background with name tag) (for Board Exam takers)",
+      "Photocopy of Honorable Dismissal (for transfer students)",
+    
+        "---",
+
+      "For Second Request and Onwards:",  
+      "Already Requested a TOR before"
     ],
-    processing: "5 to 7 Working Days",
-    note: "First-time job seeker discounts apply upon presentation of Barangay First-Time Jobseeker Certification."
+    processing: "First Request: 20 Working Days\n Second Request & Onwards: 7 Working Days",
+    note: "Must be requested by the student or an authorized representative with a formal authorization letter and photocopy of the student's valid id."
   },
   grades: {
     title: "Certificate of Grades",
@@ -251,17 +259,39 @@ const documentInfo = {
     processing: "2 to 3 Working Days",
     note: "Useful for scholarship applications, credit transfers, and personal evaluation."
   },
-  authentication: {
-    title: "Authentication (CAV / Certified True Copy)",
-    icon: "✔",
+  CAV: {
+    title: "Certification Authentication and Verification (CAV)",
+    icon: "🌏︎",
     description: "Verification and authentication of official school documents for employment, DFA apostille, or overseas studies.",
     requirements: [
       "Original Document to be authenticated",
       "Photocopies of the document (2 sets)",
       "Valid Government Issued ID"
     ],
-    processing: "3 to 5 Working Days",
+    processing: "7 Working Days",
     note: "Original copies must be presented to the Registrar's Office during document pickup."
+  },
+  CTC: {
+    title: "Certified True Copy (CTC)",
+    icon: "✔",
+    description: "Certified true copy of official school records for scholarships, and etc..",
+    requirements: [
+      "Photocopy of Document to be CTC",
+    ],
+    processing: "Walk-Ins Only",
+    note: "Photocopy must be provided by requester for CTC"
+  },
+  Good_Moral: {
+    title: "Good Moral Certificate",
+    icon: "🏅",
+    description: "Official certification of the student's good moral character.",
+    requirements: [
+      "Original Document to be authenticated",
+      "Photocopies of the document (2 sets)",
+      "Valid Government Issued ID"
+    ],
+    processing: "Must Go To the OSAS Office",
+    note: "OSAS are the one authorize for Providing Document"
   }
 };
 
@@ -275,18 +305,28 @@ function openDocModal(docKey) {
   document.getElementById('modalProcessing').innerText = data.processing;
   document.getElementById('modalNote').innerText = data.note;
 
-  // Render Requirements List
-  const reqList = document.getElementById('modalRequirements');
-  reqList.innerHTML = '';
-  data.requirements.forEach(req => {
-    const li = document.createElement('li');
-    li.innerText = req;
-    reqList.appendChild(li);
-  });
+// Render Requirements List
+const reqList = document.getElementById('modalRequirements');
+reqList.innerHTML = '';
+
+data.requirements.forEach(req => {
+
+  if (req === "---") {
+    const spacer = document.createElement('div');
+    spacer.style.height = "12px";
+    reqList.appendChild(spacer);
+    return;
+  }
+
+  const li = document.createElement('li');
+  li.innerText = req;
+  reqList.appendChild(li);
+
+});
 
   // Set Direct Request Link with Query Parameter
   const requestBtn = document.getElementById('modalRequestBtn');
-  requestBtn.href = `request.html?doc=${encodeURIComponent(data.title)}`;
+  requestBtn.href = `request.php?doc=${encodeURIComponent(data.title)}`;
 
   document.getElementById('docModal').classList.add('active');
 }
@@ -325,3 +365,55 @@ document.addEventListener("DOMContentLoaded", () => {
         showSlide(current);
     }, 3000);
 });
+
+//Carousel
+function scrollCarousel(direction) {
+
+    const container = document.getElementById("servicesGrid");
+
+    const card = container.querySelector(".service-card");
+    const scrollAmount = card.offsetWidth + 25;
+
+    const maxScroll = container.scrollWidth - container.clientWidth;
+
+    if (direction === 1) {
+
+        // Next
+        if (container.scrollLeft + scrollAmount >= maxScroll) {
+
+            container.scrollTo({
+                left: 0,
+                behavior: "smooth"
+            });
+
+        } else {
+
+            container.scrollBy({
+                left: scrollAmount,
+                behavior: "smooth"
+            });
+
+        }
+
+    } else {
+
+        // Previous
+        if (container.scrollLeft <= 5) {
+
+            container.scrollTo({
+                left: maxScroll,
+                behavior: "smooth"
+            });
+
+        } else {
+
+            container.scrollBy({
+                left: -scrollAmount,
+                behavior: "smooth"
+            });
+
+        }
+
+    }
+
+}

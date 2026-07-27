@@ -96,63 +96,185 @@ HERO SECTION (Updated with Tracker Button)
   </section>
 
 <!-- ===================================
-AVAILABLE DOCUMENTS SECTION (Enhanced Cards)
+AVAILABLE DOCUMENTS SECTION
 =================================== -->
 <section class="services" id="services">
-  <div class="container">
-    <h2>Available Documents</h2>
-    <p class="section-description">Select a document to view details, requirements, and processing times, or request directly.</p>
-    
-    <div class="services-grid">
-      <!-- Certificate of Enrollment -->
-      <div class="service-card">
-        <div class="icon">📄</div>
-        <h3>Certificate of Enrollment</h3>
-        <p class="doc-summary">Official proof of active registration, enrolled units, and current academic standing.</p>
-        <div class="doc-badge">⏱ Processing: 1-2 Working Days</div>
-        <div class="card-actions">
-          <button class="btn-info" onclick="openDocModal('enrollment')">ℹ️ View Info</button>
-          <a href="request.php?doc=Certificate%20of%20Enrollment" class="btn-card-request">Request Document →</a>
-        </div>
-      </div>
+    <div class="container">
 
-      <!-- Transcript of Records -->
-      <div class="service-card">
-        <div class="icon">🎓</div>
-        <h3>Transcript of Records</h3>
-        <p class="doc-summary">Complete academic history detailing all subjects, grades, units, and degree status.</p>
-        <div class="doc-badge">⏱ Processing: 5-7 Working Days</div>
-        <div class="card-actions">
-          <button class="btn-info" onclick="openDocModal('tor')">ℹ️ View Info</button>
-          <a href="request.php?doc=Transcript%20of%20Records" class="btn-card-request">Request Document →</a>
-        </div>
-      </div>
+        <h2>Available Documents</h2>
+        <p class="section-description">
+            Select a document to view details, requirements, and processing times, or request directly.
+        </p>
 
-      <!-- Certificate of Grades -->
-      <div class="service-card">
-        <div class="icon">📜</div>
-        <h3>Certificate of Grades</h3>
-        <p class="doc-summary">Official record of evaluation grades achieved for a specific semester or academic year.</p>
-        <div class="doc-badge">⏱ Processing: 2-3 Working Days</div>
-        <div class="card-actions">
-          <button class="btn-info" onclick="openDocModal('grades')">ℹ️ View Info</button>
-          <a href="request.php?doc=Certificate%20of%20Grades" class="btn-card-request">Request Document →</a>
-        </div>
-      </div>
+        <div class="services-carousel">
 
-      <!-- Authentication (CAV) -->
-      <div class="service-card">
-        <div class="icon">✔</div>
-        <h3>Authentication (CAV)</h3>
-        <p class="doc-summary">Certified true copy and verification of official school records for legal or abroad use.</p>
-        <div class="doc-badge">⏱ Processing: 3-5 Working Days</div>
-        <div class="card-actions">
-          <button class="btn-info" onclick="openDocModal('authentication')">ℹ️ View Info</button>
-          <a href="request.php?doc=Authentication" class="btn-card-request">Request Document →</a>
+            <!-- Previous Button -->
+            <button class="carousel-btn prev" onclick="scrollCarousel(-1)">
+                &#10094;
+            </button>
+
+            <!-- Cards -->
+            <div class="services-grid" id="servicesGrid">
+
+                <!-- Certificate of Enrollment -->
+                <div class="service-card">
+                    <div class="icon">📄</div>
+                    <h3>Certificate of Enrollment</h3>
+                    <p class="doc-summary">
+                        Official proof of active registration, enrolled units,
+                        and current academic standing.
+                    </p>
+                    <div class="doc-badge">
+                        ⏱ Processing: 2-3 Working Days
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn-info"
+                            onclick="openDocModal('enrollment')">
+                            ℹ️ View Info
+                        </button>
+
+                        <a href="request.php?doc=Certificate%20of%20Enrollment"
+                            class="btn-card-request">
+                            Request Document →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Transcript of Records -->
+                <div class="service-card">
+                    <div class="icon">🎓</div>
+                    <h3>Transcript of Records</h3>
+                    <p class="doc-summary">
+                        Complete academic history detailing all subjects,
+                        grades, units, and degree status.
+                    </p>
+
+                    <div class="doc-badge">
+                        ⏱ Processing <br> First Request: 20 Working Days<br>Second Request & Onwards: 7 Working Days
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn-info"
+                            onclick="openDocModal('tor')">
+                            ℹ️ View Info
+                        </button>
+
+                        <a href="request.php?doc=Transcript%20of%20Records"
+                            class="btn-card-request">
+                            Request Document →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Certificate of Grades -->
+                <div class="service-card">
+                    <div class="icon">📜</div>
+                    <h3>Certificate of Grades</h3>
+                    <p class="doc-summary">
+                        Official record of evaluation grades achieved
+                        for a specific semester or academic year.
+                    </p>
+
+                    <div class="doc-badge">
+                        ⏱ Processing: 2-3 Working Days
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn-info"
+                            onclick="openDocModal('grades')">
+                            ℹ️ View Info
+                        </button>
+
+                        <a href="request.php?doc=Certificate%20of%20Grades"
+                            class="btn-card-request">
+                            Request Document →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CAV -->
+                <div class="service-card">
+                    <div class="icon">🌏︎</div>
+                    <h3> Certification Authentication and Verification (CAV)</h3>
+
+                    <p class="doc-summary">
+                        Certification and verification of official
+                        school records for legal or abroad use.
+                    </p>
+
+                    <div class="doc-badge">
+                        ⏱ Processing: 7 Working Days
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn-info"
+                            onclick="openDocModal('authentication')">
+                            ℹ️ View Info
+                        </button>
+
+                        <a href="request.php?doc=Authentication"
+                            class="btn-card-request">
+                            Request Document →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CTC -->
+                <div class="service-card">
+                    <div class="icon">✔</div>
+                    <h3>Cetified True Copy</h3>
+
+                    <p class="doc-summary">
+                        Certified true copy of official
+                        school records for scholarships, and etc..
+                    </p>
+
+                    <div class="doc-badge">
+                        ⏱ Processing: Walk-In
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn-info"
+                            onclick="openDocModal('authentication')">
+                            ℹ️ View Info
+                        </button>
+
+                    </div>
+                </div>
+
+                <!-- Example Additional Card -->
+                <div class="service-card">
+                    <div class="icon">🏅</div>
+                    <h3>Good Moral Certificate</h3>
+
+                    <p class="doc-summary">
+                        Official certification of the student's good moral character.
+                    </p>
+
+                    <div class="doc-badge">
+                        ⏱ Processing: Walk-In
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn-info"
+                            onclick="openDocModal('goodmoral')">
+                            ℹ️ View Info
+                        </button>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Next Button -->
+            <button class="carousel-btn next" onclick="scrollCarousel(1)">
+                &#10095;
+            </button>
+
         </div>
-      </div>
+
     </div>
-  </div>
 </section>
 
 <!-- ===================================

@@ -241,6 +241,89 @@ OFFICE & SERVICES
 .service-card h3 { margin-bottom: 15px; font-size: 1.25rem; color: var(--text); }
 .service-card p { color: var(--gray); font-size: .95rem; line-height: 1.7; }
 
+/* ==========================
+   DOCUMENT CAROUSEL
+========================== */
+
+.services-carousel{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    width:100%;
+}
+
+.services-grid{
+    display:flex;
+    gap:25px;
+
+    overflow-x:auto;
+    scroll-behavior:smooth;
+
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+
+    flex:1;
+}
+
+.services-grid::-webkit-scrollbar{
+    display:none;
+}
+
+.service-card{
+
+    flex:0 0 320px;
+
+    scroll-snap-align:start;
+}
+
+.services-grid{
+    scroll-snap-type:x mandatory;
+}
+
+.carousel-btn{
+
+    width:48px;
+    height:48px;
+
+    border:none;
+    border-radius:50%;
+
+    cursor:pointer;
+
+    font-size:24px;
+    font-weight:bold;
+
+    background:#003366;
+    color:#fff;
+
+    transition:.3s;
+}
+
+.carousel-btn:hover{
+
+    background:#0056b3;
+    transform:scale(1.08);
+
+}
+
+@media(max-width:768px){
+
+    .service-card{
+
+        flex:0 0 90%;
+
+    }
+
+    .carousel-btn{
+
+        width:40px;
+        height:40px;
+        font-size:20px;
+
+    }
+
+}
+
 /*=====================================
 HOW IT WORKS
 =====================================*/

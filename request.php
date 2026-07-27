@@ -1,3 +1,17 @@
+<?php 
+  session_start();
+  require_once 'includes/config.php';
+
+  $sql = "SELECT * FROM `programs`";
+
+  try {
+    $programs = $conn->query($sql);
+  } catch (\Throwable $th) {
+    echo($th);
+  }
+  
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,7 +61,7 @@
         <p>Confirmation</p>
       </div>
     </div>
-
+    
     <form id="requestForm">
       <!-- STEP 1 - STUDENT INFORMATION -->
       <section class="form-step active">
@@ -55,7 +69,7 @@
         <div class="grid-2">
           <div class="input-group">
             <label>Student Number</label>
-            <input type="text" name="Student Number" placeholder="2023-00001">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" placeholder='202310000' >
           </div>
           <div class="input-group">
             <label>Student Email</label>
@@ -75,77 +89,84 @@
           </div>
           <div class="input-group">
             <label>Course</label>
-            <select name="Course">
+            <select name="Program">
               <option value="">Select Course</option>
-              <option>BS Computer Science</option>
-              <option>BS Information Technology</option>
-              <option>BSEd</option>
-              <option>BSBA</option>
-            </select>
+              <?php foreach ($programs as $program): ?>
+                <option value="<?= $program['program']; ?>"><?= htmlspecialchars($program['program_name']); ?></option>
+                <?php endforeach; ?>
+                <option value="others">Others</option>
+              </select>
+            </div>
           </div>
-          <div class="input-group full">
-            <label>Complete Address</label>
-            <textarea name="Address" rows="3"></textarea>
+          <div class="buttons">
+            <button type="button" class="next">Next →</button>
           </div>
-        </div>
-        <div class="buttons">
-          <button type="button" class="next">Next →</button>
-        </div>
-      </section>
-
-      <!-- STEP 2 - DOCUMENT DETAILS -->
-      <section class="form-step">
-        <h2>Document Details</h2>
-        <div class="grid-2">
-          <div class="input-group">
-            <label>Document Type</label>
-            <select name="Document">
-              <option>Certificate of Enrollment</option>
-              <option>Certificate of Grades</option>
-              <option>Transcript of Records</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label>Purpose</label>
-            <select name="Purpose">
-              <option>Employment</option>
-              <option>Scholarship</option>
-              <option>Transfer</option>
+        </section>
+        
+        <!-- STEP 2 - DOCUMENT DETAILS -->
+        <section class="form-step">
+          <h2>Document Details</h2>
+          <div class="grid-2">
+            <div class="input-group">
+              <label>Document Type</label>
+              <select name="Document">
+                <option>Transcript of Record (TOR)</option>
+                <option>Diploma</option>
+                <option>Certificate of Grades (COG)</option>
+                <option>Certificate of Enrollment (COE)</option>
+                <option>Form 137A</option>
+                <option>Certification Authentication and Verification (CAV)</option>
+                <option>Certification</option>
+                <option>Others</option>
+              </select>
+              <input type="text" name="others_type" id="others_type" class="form-control mt-2" 
+                                           placeholder="Specify document here" style="display: none;">
+            </div>
+            <div class="input-group">
+              <label>Purpose</label>
+              <select name="Purpose">
+                <option value="Employment">Employment</option>
+                <option value="Scholarship">Scholarship</option>
+                <option value="Board Exam">Board Exam</option>
+                <option value="Transfer">Transfer</option>
+                <option value="Others">Others</option>
+              </select>
+              <textarea name="others_purpose" id="others_purpose" style="display: none;" class="form-control" rows="3" placeholder="Enter the purpose of your request"></textarea>
             </select>
           </div>
           <div class="input-group full">
             <label>Additional Notes</label>
             <textarea name="Notes" rows="3"></textarea>
           </div>
+      </div>
+      <div class="buttons">
+        <button type="button" class="previous">← Previous</button>
+        <button type="button" class="next">Next →</button>
+      </div>
+    </section>
+    
+    <!-- STEP 3 - CONFIRMATION -->
+    <section class="form-step">
+      <h2>Confirmation</h2>
+      <div class="confirmation">
+        <h3>Please review your information.</h3>
+        <p>Ensure all information is correct before submitting.</p>
+        <div class="summary">
+          <!-- JS inserts summary here -->
         </div>
-        <div class="buttons">
-          <button type="button" class="previous">← Previous</button>
-          <button type="button" class="next">Next →</button>
-        </div>
-      </section>
+        <label class="checkbox">
+          <input type="checkbox">
+          I certify that all information provided is true and correct.
+        </label>
+      </div>
+      <div class="buttons">
+        <button type="button" class="previous">← Previous</button>
+        <button type="submit" class="submit" >Submit Request</button>
+      </div>
+    </section>
+  </form>
+</main>
 
-      <!-- STEP 3 - CONFIRMATION -->
-      <section class="form-step">
-        <h2>Confirmation</h2>
-        <div class="confirmation">
-          <h3>Please review your information.</h3>
-          <p>Ensure all information is correct before submitting.</p>
-          <div class="summary">
-            <!-- JS inserts summary here -->
-          </div>
-          <label class="checkbox">
-            <input type="checkbox">
-            I certify that all information provided is true and correct.
-          </label>
-        </div>
-        <div class="buttons">
-          <button type="button" class="previous">← Previous</button>
-          <button type="submit" class="submit" >Submit Request</button>
-        </div>
-      </section>
-    </form>
-  </main>
-
-  <script src="js/request.js"></script>
+<script src="js/request.js"></script>
 </body>
 </html>

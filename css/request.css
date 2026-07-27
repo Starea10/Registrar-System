@@ -2,7 +2,7 @@
 REQUEST FORM HEADER
 =====================================*/
 .container.nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
-.container.nav .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--primary); font-size: 1.2rem; }
+.container.nav .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; color: #ffffff; font-size: 1.2rem; }
 .container.nav .logo img { width: 40px; }
 .container.nav .back { font-weight: 600; color: #ffffff; transition: var(--transition); }
 .container.nav .back:hover { color: var(--primary); }

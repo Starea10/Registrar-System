@@ -35,25 +35,25 @@ function showStep(index) {
 /*=====================================
 VALIDATE STEP
 =====================================*/
-function validateStep(step) {
-  const inputs = steps[step].querySelectorAll('input, select, textarea');
-  let valid = true;
+// function validateStep(step) {
+//   const inputs = steps[step].querySelectorAll('input, select, textarea');
+//   let valid = true;
 
-  inputs.forEach(input => {
-    if (input.type === 'button' || input.type === 'checkbox') return;
+//   inputs.forEach(input => {
+//     if (input.type === 'button' || input.type === 'checkbox') return;
 
-    if (input.value.trim() === '') {
-      input.classList.add('error');
-      input.classList.remove('success');
-      valid = false;
-    } else {
-      input.classList.remove('error');
-      input.classList.add('success');
-    }
-  });
+//     if (input.value.trim() === '') {
+//       input.classList.add('error');
+//       input.classList.remove('success');
+//       valid = false;
+//     } else {
+//       input.classList.remove('error');
+//       input.classList.add('success');
+//     }
+//   });
 
-  return valid;
-}
+//   return valid;
+// }
 
 /*=====================================
 GENERATE SUMMARY
@@ -104,10 +104,10 @@ NEXT BUTTON HANDLER
 =====================================*/
 nextBtns.forEach(btn => {
   btn.addEventListener('click', () => {
-    if (!validateStep(currentStep)) {
-      alert('Please complete all required fields.');
-      return;
-    }
+    // if (!validateStep(currentStep)) {
+    //   alert('Please complete all required fields.');
+    //   return;
+    // }
 
     if (currentStep === 1) {
       generateSummary();
