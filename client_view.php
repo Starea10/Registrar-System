@@ -49,6 +49,7 @@ $requests_result = $conn->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request Tracker - Public View</title>
+    <link rel="icon" href="assets/images/logo.png" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -643,9 +644,14 @@ $requests_result = $conn->query($sql);
     <div class="container-fluid">
         <div class="main-container fade-in">
             <!-- Header Section -->
-            <div class="header-section">
-                <div class="container">
-                    <h1><i class="fas fa-clipboard-list me-3"></i>Cavite State University - Naic Registrar</h1>
+            <div class="header-section row">
+                <div class="container col-md-1">
+                    <button onclick="window.location.href='index-old.php'" class="btn btn-sm btn-light">
+                        <i class="fa-solid fa-house"></i>
+                    </button>
+                </div>
+                <div class="container col">
+                    <h1><i class="fas fa-clipboard-list me-3"></i>Cavite State University Naic - Office of the Campus Registrar</h1>
                     <p>Real-time Document Request Tracking System</p>                   
                 </div>
             </div>

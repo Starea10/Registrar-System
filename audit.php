@@ -3,7 +3,7 @@ session_start();
 require_once 'includes/config.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: index.php');
+    header('Location: index-old.php');
     exit();
 }
 
@@ -22,7 +22,7 @@ $where_conditions = array();
 $where_conditions[] = "a.action IN ('create_request', 'update_request', 'archive_request', 'restore_request', 'delete_request')";
 
 if ($search) {
-    $where_conditions[] = "(u.username LIKE '%$search%' OR a.details LIKE '%$search%')";
+    $where_conditions[] = "(u.staff_name LIKE '%$search%' OR a.details LIKE '%$search%')";
 }
 
 if ($action_filter) {
@@ -36,16 +36,16 @@ if ($date_filter) {
 $where_clause = "WHERE " . implode(' AND ', $where_conditions);
 
 // Get audit entries
-$sql = "SELECT a.*, u.username 
+$sql = "SELECT a.*, u.staff_name 
         FROM audit_trail a 
-        LEFT JOIN users u ON a.user_id = u.id 
+        LEFT JOIN staffs u ON a.user_id = u.id 
         $where_clause
         ORDER BY a.created_at DESC 
         LIMIT $offset, $per_page";
 $audit_entries = $conn->query($sql);
 
 // Get total count for pagination
-$count_sql = "SELECT COUNT(*) as total FROM audit_trail a LEFT JOIN users u ON a.user_id = u.id $where_clause";
+$count_sql = "SELECT COUNT(*) as total FROM audit_trail a LEFT JOIN staffs u ON a.user_id = u.id $where_clause";
 $total_result = $conn->query($count_sql);
 $total = $total_result->fetch_assoc()['total'];
 $total_pages = ceil($total / $per_page);
@@ -70,7 +70,7 @@ if (isset($_GET['ajax'])) {
                 <td><?php echo $entry['id']; ?></td>
                 <td>
                     <i class="fas fa-user me-1"></i>
-                    <?php echo htmlspecialchars($entry['username']); ?>
+                    <?php echo htmlspecialchars($entry['staff_name']); ?>
                 </td>
                 <td>
                     <span class="badge bg-<?php 
@@ -124,7 +124,8 @@ if (isset($_GET['ajax'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Audit Trail - RMS</title>
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="icon" href="assets/images/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="assets/css/styles2.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -448,6 +449,10 @@ if (isset($_GET['ajax'])) {
                         <i class="fas fa-list"></i>
                         <span>Requests</span>
                     </a>
+                     <a href="archives.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'archives.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-list"></i>
+                        <span>Archives</span>
+                    </a>
                     <?php if ($_SESSION['role'] === 'admin'): ?>
                     <a href="users.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'users.php' ? 'active' : ''; ?>">
                         <i class="fas fa-users"></i>
@@ -540,7 +545,7 @@ if (isset($_GET['ajax'])) {
                                 <td><?php echo $entry['id']; ?></td>
                                 <td>
                                     <i class="fas fa-user me-1"></i>
-                                    <?php echo htmlspecialchars($entry['username']); ?>
+                                    <?php echo htmlspecialchars($entry['staff_name']); ?>
                                 </td>
                                 <td>
                                     <span class="badge bg-<?php 

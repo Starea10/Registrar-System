@@ -110,6 +110,7 @@ async function handleStatusUpdate(select) {
         }
     } catch (error) {
         console.error('Status update error:', error);
+        console.log(error);
         showAlert('A network error occurred. Please try again.', 'danger');
         select.value = originalStatus; // Revert on network error
     }
@@ -132,14 +133,111 @@ function toggleCertificationInput() {
     const checkbox = document.getElementById('certification');
     const input = document.getElementById('certification_type');
     
+    const quantityId = `certification_quantity`;
+    const dateId = `certification_claiming_date`;
+
+    const quantity = document.getElementById(quantityId);
+    const date = document.getElementById(dateId);
+
     if (checkbox && input) {
         if (checkbox.checked) {
             input.style.display = 'block';
             input.required = true;
+
+            quantity.disabled = false;
+            date.disabled = false;
+
+            quantity.required = true;
+            date.required = true;
+
+            quantity.value = 1;
         } else {
             input.style.display = 'none';
             input.required = false;
             input.value = '';
+            
+            quantity.disabled = true;
+            date.disabled = true;
+
+            quantity.required = false;
+            date.required = false;
+
+            quantity.value = '';
+            date.value = '';
+
+        }
+    }
+}
+
+function togglePurposeOthersInput() {
+    const purpose = document.getElementById('purpose');
+    const input = document.getElementById('others_purpose');
+    
+
+    if (purpose.value === "Others" && input) {
+        
+            input.style.display = 'block';
+            input.required = true;
+    } else {
+            input.style.display = 'none';
+            input.required = false;
+            input.value = '';
+
+    }
+    
+}
+
+// Clickable table rows on the request slip form
+document.querySelectorAll('.clickable-row').forEach(row => {
+  row.addEventListener('click', function(event) {
+    // Find the checkbox inside this row
+    const checkbox = this.querySelector('.row-checkbox');
+    
+    // Prevent double-toggle if the user clicked the checkbox directly
+    if (event.target !== checkbox) {
+      checkbox.checked = !checkbox.checked;
+    }
+})
+})
+/**
+ * Toggle others input field visibility
+ */
+function toggleOthersInput() {
+    const checkbox = document.getElementById('others');
+    const input = document.getElementById('others_type');
+    
+    const quantityId = `others_quantity`;
+    const dateId = `others_claiming_date`;
+
+    const quantity = document.getElementById(quantityId);
+    const date = document.getElementById(dateId);
+
+
+    if (checkbox && input) {
+        if (checkbox.checked) {
+            input.style.display = 'block';
+            input.required = true;
+
+            quantity.disabled = false;
+            date.disabled = false;
+
+            quantity.required = true;
+            date.required = true;
+
+            quantity.value = 1;
+        } else {
+            input.style.display = 'none';
+            input.required = false;
+            input.value = '';
+
+            quantity.disabled = true;
+            date.disabled = true;
+
+            quantity.required = false;
+            date.required = false;
+
+            quantity.value = '';
+            date.value = '';
         }
     }
 }
@@ -163,6 +261,38 @@ function validateNewRequestForm(e) {
         e.preventDefault();
         alert('Please select at least one document type.');
         return false;
+    }
+}
+
+function toggleQuantityAndDateInput(element) {
+    const quantityId = `${element}_quantity`;
+    const dateId = `${element}_claiming_date`;
+
+    const checkbox = document.getElementById(element);
+
+    const quantity = document.getElementById(quantityId);
+    const date = document.getElementById(dateId);
+
+    
+    if (checkbox) {
+        if (checkbox.checked) {
+            quantity.disabled = false;
+            date.disabled = false;
+
+            quantity.required = true;
+            date.required = true;
+
+            quantity.value = 1;
+        } else {
+            quantity.disabled = true;
+            date.disabled = true;
+
+            quantity.required = false;
+            date.required = false;
+
+            quantity.value = '';
+            date.value = '';
+        }
     }
 }
 
