@@ -973,6 +973,10 @@ if ($view_released) {
                         <i class="fas fa-list"></i>
                         <span>Requests</span>
                     </a>
+                     <a href="archives.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'archives.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-list"></i>
+                        <span>Archives</span>
+                    </a>    
                     <?php if ($_SESSION['role'] === 'admin'): ?>
                     <a href="users.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'users.php' ? 'active' : ''; ?>">
                         <i class="fas fa-users"></i>

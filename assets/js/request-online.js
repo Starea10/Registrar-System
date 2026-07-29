@@ -212,3 +212,91 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+const requirements = {
+    TOR: [
+        {
+            label: "Student Clearance",
+            accept: "image/*",
+            name: "clearance"
+        }
+    ],
+
+    COE: [
+        {
+            label: "Student ID",
+            accept: "image/*",
+            name: "student_id"
+        },
+        {
+            label: "Registration Form",
+            accept: "image/*,.pdf",
+            name: "registration_form"
+        }
+    ],
+
+    Diploma: [],
+
+    COG: [],
+
+    Form137: [
+        {
+            label: "Valid ID",
+            accept: "image/*",
+            name: "valid_id"
+        }
+    ],
+
+    CAV: [
+        {
+            label: "Passport",
+            accept: "image/*",
+            name: "passport"
+        }
+    ]
+};
+
+const documentType = document.getElementById("documentType");
+const requirementContainer = document.getElementById("documentRequirements");
+
+function renderRequirements(documentName) {
+
+    requirementContainer.innerHTML = "";
+
+    const docs = requirements[documentName];
+
+    if (!docs || docs.length === 0)
+        return;
+
+    let html = `
+        <div class="requirements-section">
+            <h3>Required Documents</h3>
+            <p>Please upload the following before submitting your request.</p>
+    `;
+
+    docs.forEach(doc => {
+
+        html += `
+            <div class="input-group full">
+                <label>${doc.label}</label>
+
+                <input
+                    type="file"
+                    name="${doc.name}"
+                    accept="${doc.accept}"
+                    required
+                >
+            </div>
+        `;
+
+    });
+
+    html += "</div>";
+
+    requirementContainer.innerHTML = html;
+}
+
+documentType.addEventListener("change", function () {
+    renderRequirements(this.value);
+});
+
+renderRequirements(documentType.value);

@@ -88,3 +88,21 @@ ACTIONS & SUMMARY
     .step { display: flex; align-items: center; gap: 15px; width: 100%; text-align: left; }
     .circle { margin: 0; }
 }
+
+.requirements-section{
+    margin-top:30px;
+    padding:25px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#fafafa;
+}
+
+.requirements-section h3{
+    color:var(--primary);
+    margin-bottom:8px;
+}
+
+.requirements-section p{
+    margin-bottom:20px;
+    color:var(--gray);
+}

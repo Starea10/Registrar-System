@@ -22,7 +22,7 @@
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="assets/css/variables.css">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
   <link rel="stylesheet" href="assets/css/request.css">
 </head>
 
@@ -103,47 +103,71 @@
           </div>
         </section>
         
-        <!-- STEP 2 - DOCUMENT DETAILS -->
-        <section class="form-step">
-          <h2>Document Details</h2>
-          <div class="grid-2">
-            <div class="input-group">
-              <label>Document Type</label>
-              <select name="Document">
-                <option>Transcript of Record (TOR)</option>
-                <option>Diploma</option>
-                <option>Certificate of Grades (COG)</option>
-                <option>Certificate of Enrollment (COE)</option>
-                <option>Form 137A</option>
-                <option>Certification Authentication and Verification (CAV)</option>
-                <option>Certification</option>
-                <option>Others</option>
-              </select>
-              <input type="text" name="others_type" id="others_type" class="form-control mt-2" 
-                                           placeholder="Specify document here" style="display: none;">
-            </div>
-            <div class="input-group">
-              <label>Purpose</label>
-              <select name="Purpose">
+<!-- STEP 2 - DOCUMENT DETAILS -->
+<section class="form-step">
+    <h2>Document Details</h2>
+
+    <div class="grid-2">
+
+        <!-- Document Type -->
+        <div class="input-group">
+            <label>Document Type</label>
+            <select name="Document" id="documentType">
+                <option value="TOR">Transcript of Record (TOR)</option>
+                <option value="Diploma">Diploma</option>
+                <option value="COG">Certificate of Grades (COG)</option>
+                <option value="COE">Certificate of Enrollment (COE)</option>
+                <option value="Form137">Form 137A</option>
+                <option value="CAV">Certification Authentication and Verification (CAV)</option>
+                <option value="Certification">Certification</option>
+                <option value="Others">Others</option>
+            </select>
+
+            <input type="text"
+                   name="others_type"
+                   id="others_type"
+                   placeholder="Specify document here"
+                   style="display:none;">
+        </div>
+
+        <!-- Purpose -->
+        <div class="input-group">
+            <label>Purpose</label>
+
+            <select name="Purpose">
                 <option value="Employment">Employment</option>
                 <option value="Scholarship">Scholarship</option>
                 <option value="Board Exam">Board Exam</option>
                 <option value="Transfer">Transfer</option>
                 <option value="Others">Others</option>
-              </select>
-              <textarea name="others_purpose" id="others_purpose" style="display: none;" class="form-control" rows="3" placeholder="Enter the purpose of your request"></textarea>
             </select>
-          </div>
-          <div class="input-group full">
-            <label>Additional Notes</label>
-            <textarea name="Notes" rows="3"></textarea>
-          </div>
-      </div>
-      <div class="buttons">
+
+            <textarea
+                name="others_purpose"
+                id="others_purpose"
+                rows="3"
+                placeholder="Enter the purpose"
+                style="display:none;">
+            </textarea>
+        </div>
+
+    </div>
+
+    <!-- NEW DYNAMIC REQUIREMENTS SECTION -->
+    <div id="documentRequirements"></div>
+
+    <!-- Additional Notes -->
+    <div class="input-group full">
+        <label>Additional Notes</label>
+        <textarea name="Notes" rows="3"></textarea>
+    </div>
+
+    <div class="buttons">
         <button type="button" class="previous">← Previous</button>
         <button type="button" class="next">Next →</button>
-      </div>
-    </section>
+    </div>
+
+</section>
     
     <!-- STEP 3 - CONFIRMATION -->
     <section class="form-step">

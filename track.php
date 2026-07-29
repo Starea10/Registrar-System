@@ -8,7 +8,7 @@
   
   <!-- Stylesheets -->
   <link rel="stylesheet" href="assets/css/variables.css">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
   <link rel="stylesheet" href="assets/css/request.css">
 </head>
 

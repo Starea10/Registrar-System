@@ -10,8 +10,8 @@ use PHPMailer\PHPMailer\SMTP;
 if(isset($_POST['send'])){
 $mail = new PHPMailer(true); // Enable exceptions
 
-$email_address = "" // CHANGE THIS TO REGISTRAR'S OFFICE ACCOUNT!!!
-$password = "" // CHANGE THIS TO REGISTRAR'S OFFICE ACCOUNT!!!
+$email_address = ""; // CHANGE THIS TO REGISTRAR'S OFFICE ACCOUNT!!!
+$password = ""; // CHANGE THIS TO REGISTRAR'S OFFICE ACCOUNT!!!
 
 // SMTP Configuration
 $mail->isSMTP();
