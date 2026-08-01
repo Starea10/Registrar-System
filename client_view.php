@@ -1,9 +1,9 @@
-/**
+<!-- /**
  * Public request tracking page.
  *
  * Loads the request data needed to show the request status and progress to
  * the requester without exposing the administrative dashboard.
- */
+ */ -->
 <?php
 require_once 'includes/config.php';
 

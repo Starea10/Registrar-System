@@ -1,9 +1,9 @@
-/**
+<!-- /**
  * User management page.
  *
  * Handles admin-side user maintenance, account creation, and role-based
  * access operations for the registrar portal.
- */
+ */ -->
 <?php
 session_start();
 require_once 'includes/config.php';

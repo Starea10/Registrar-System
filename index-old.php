@@ -1,9 +1,9 @@
-/**
+<!-- /**
  * Legacy public login page.
  *
  * Provides the older staff-facing login screen and routes users into the
  * secure registrar portal workflow.
- */
+ */ -->
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -1,9 +1,9 @@
-/**
+<!-- /**
  * Audit trail page.
  *
  * Shows the store of audit actions and administrative activity for review,
  * filtering, and monitoring by authorized staff members.
- */
+ */ -->
 <?php
 session_start();
 require_once 'includes/config.php';

@@ -1,9 +1,9 @@
-/**
+<!-- /**
  * Online document request form page.
  *
  * Renders the public request form for submitting registrar document requests
  * and captures the selected document, details, and contact information.
- */
+ */ -->
 <?php
   session_start();
   require_once 'includes/config.php';

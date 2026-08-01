@@ -1,9 +1,9 @@
-/**
+<!-- /**
  * Archived requests page.
  *
  * Displays archived registrar requests and provides restore/archive-related
  * management actions for authorized staff users.
- */
+ */ -->
 <?php
 /**
  * requests_logic.php
