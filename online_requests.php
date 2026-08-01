@@ -105,63 +105,217 @@ const DOCUMENT_LABELS = [
 
 const ALLOWED_STATUSES = ['pending', 'processing', 'for_signature', 'for_release', 'released'];
 
-
-
 // ---------------------------------------------------------------------
-// Released date update
+// Create a new request
 // ---------------------------------------------------------------------
-if (isset($_POST['update_released_date']) && isset($_POST['request_id']) && $is_admin_or_staff) {
-    $request_id = (int)$_POST['request_id'];
-    $new_released_date = $_POST['released_date'] ?? '';
+$is_create_request = (
+    $_SERVER['REQUEST_METHOD'] === 'POST'
+    && !isset($_POST['update_status'])
+    && !isset($_POST['update_claiming_date'])
+    && !isset($_POST['archive_action'])
+    && !isset($_POST['update_released_date'])
+    && $is_admin_or_staff
+);
 
-    if ($new_released_date === '') {
-        $_SESSION['error'] = 'Released date cannot be empty.';
-        header('Location: ' . $_SERVER['PHP_SELF']);
-        exit();
+if ($is_create_request) {
+    $required_fields = ['student_number', 'student_name', 'program', 'year_graduation', 'contact', 'purpose'];
+    $has_all_required = true;
+    foreach ($required_fields as $field) {
+        if (!isset($_POST[$field])) {
+            $has_all_required = false;
+            break;
+        }
     }
 
-    $stmt = $conn->prepare("SELECT id, released_at, requester_id FROM requests WHERE id = ?");
+    if ($has_all_required && !empty($_POST['document']) && is_array($_POST['document'])) {
+        try {
+            $student_number  = $_POST['student_number'];
+            $student_name    = $_POST['student_name'];
+            $program         = ($_POST['program'] === 'others') ? ($_POST['others_program'] ?? '') : $_POST['program'];
+            $year_graduation = $_POST['year_graduation'];
+            $contact         = $_POST['contact'];
+            $purpose         = ($_POST['purpose'] === 'Others') ? ($_POST['others_purpose'] ?? '') : $_POST['purpose'];
+            $staff_id        = (int)($_POST['clerk'] ?? 0);
+            $contact_is_email = (($_POST['contact_choice'] ?? '') === 'email');
+
+            // One request row is created per checked document, since each
+            // document line has its own quantity and claiming date.
+            foreach ($_POST['document'] as $document) {
+                $claiming_date  = $_POST[$document . '_claiming_date'] ?? '';
+                $document_qty   = $_POST[$document . '_quantity'] ?? '';
+
+                if ($document === 'certification') {
+                    $cert_type = $_POST['certification_type'] ?? '';
+                    $doc_label = $document_qty . 'x Certification: ' . $cert_type;
+                } elseif ($document === 'others') {
+                    $docs_type = $_POST['others_type'] ?? '';
+                    $doc_label = $document_qty . 'x ' . $docs_type;
+                } elseif (isset(DOCUMENT_LABELS[$document])) {
+                    $doc_label = $document_qty . 'x ' . DOCUMENT_LABELS[$document];
+                } else {
+                    continue; // unrecognized document key, skip it
+                }
+
+                $title = 'Request for : ' . $doc_label;
+
+                $description = "Student Number: {$student_number}\n"
+                    . "Student Name: {$student_name}\n"
+                    . "Program: {$program}\n"
+                    . "Year of Graduation: {$year_graduation}\n"
+                    . "Contact Information: {$contact}\n"
+                    . "Purpose: {$purpose}\n"
+                    . "Requested Documents: {$doc_label}";
+
+                $claiming_date_value = null;
+                if ($claiming_date !== '') {
+                    $claiming_date_value = date('Y-m-d', strtotime($claiming_date));
+                    $description .= "\nScheduled Claiming Date: " . $claiming_date_value;
+                }
+
+                $email_address = $contact_is_email ? $contact : null;
+
+                $stmt = $conn->prepare(
+                    'INSERT INTO requests (title, student_number, student_name, description, requester_id, claiming_date, email_address)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)'
+                );
+                $stmt->bind_param(
+                    'ssssiss',
+                    $title,
+                    $student_number,
+                    $student_name,
+                    $description,
+                    $staff_id,
+                    $claiming_date_value,
+                    $email_address
+                );
+                $stmt->execute();
+                $stmt->close();
+
+                log_audit($conn, $staff_id, 'create_request', "Created new request: {$title}");
+            }
+
+            header('Location: ' . $_SERVER['PHP_SELF']);
+            exit();
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Error creating request: ' . $e->getMessage();
+        }
+    }
+}
+
+// ---------------------------------------------------------------------
+// Permanent deletion (archived items only, per the UI)
+// ---------------------------------------------------------------------
+if (isset($_POST['delete']) && $is_admin_or_staff) {
+    $request_id = (int)($_POST['request_id'] ?? 0);
+
+    $stmt = $conn->prepare('SELECT id, document_path, requester_id FROM requests WHERE id = ?');
     $stmt->bind_param('i', $request_id);
     $stmt->execute();
     $check_result = $stmt->get_result();
     $stmt->close();
 
     if ($check_result && $check_result->num_rows > 0) {
-        $current_request = $check_result->fetch_assoc();
-        $old_released_date = $current_request['released_at']
-            ? date('Y-m-d', strtotime($current_request['released_at']))
-            : 'N/A';
+        $request = $check_result->fetch_assoc();
 
         $conn->begin_transaction();
         try {
-            $stmt = $conn->prepare('UPDATE requests SET released_at = ? WHERE id = ?');
-            $stmt->bind_param('si', $new_released_date, $request_id);
+            $stmt = $conn->prepare('DELETE FROM requests WHERE id = ?');
+            $stmt->bind_param('i', $request_id);
+            $stmt->execute();
+            $stmt->close();
 
-            if ($stmt->execute()) {
-                $stmt->close();
-                $log_details = "Updated released date for request #{$request_id} from '{$old_released_date}' to '{$new_released_date}'";
-                log_audit($conn, (int)$current_request['requester_id'], 'update_released_date', $log_details);
-                $conn->commit();
-                $_SESSION['success'] = 'Released date updated successfully.';
-            } else {
-                throw new Exception('Failed to update released date: ' . $conn->error);
+            log_audit($conn, (int)$request['requester_id'], 'delete_request', "Permanently deleted request #{$request_id}");
+
+            if (!empty($request['document_path']) && file_exists($request['document_path'])) {
+                unlink($request['document_path']);
             }
+
+            $conn->commit();
+            header('Location: ' . $_SERVER['PHP_SELF']);
+            exit();
         } catch (Exception $e) {
             $conn->rollback();
-            $_SESSION['error'] = 'Error updating released date: ' . $e->getMessage();
-            error_log('Released date update error: ' . $e->getMessage());
+            $_SESSION['error'] = 'Error deleting request: ' . $e->getMessage();
+            header('Location: ' . $_SERVER['PHP_SELF']);
+            exit();
         }
-    } else {
-        $_SESSION['error'] = 'Released request not found.';
+    }
+}
+
+// ---------------------------------------------------------------------
+// Inline status update
+// ---------------------------------------------------------------------
+if (isset($_POST['update_status']) && isset($_POST['request_id']) && isset($_POST['new_status']) && isset($_POST['claiming_date']) && $is_admin_or_staff) {
+    $request_id = (int)$_POST['request_id'];
+    $requester_id = (int)$_POST['clerk'];
+    $new_status = $_POST['new_status'];
+    $is_ajax    = !empty($_POST['is_ajax']);
+    $claiming_date = date('Y-m-d', strtotime($_POST['claiming_date']));
+
+    $respond_error = function (string $message) use ($is_ajax) {
+        if ($is_ajax) {
+            header('Content-Type: application/json');
+            echo json_encode(['status' => 'error', 'message' => $message]);
+        } else {
+            $_SESSION['error'] = $message;
+            header('Location: ' . requests_redirect_url());
+        }
+        exit();
+    };
+
+    if (!in_array($new_status, ALLOWED_STATUSES, true)) {
+        $respond_error('Invalid status.');
     }
 
-    $redirect_url = $_SERVER['PHP_SELF'] . '?view=released';
-    if (isset($_GET['page'])) {
-        $redirect_url .= '&page=' . urlencode($_GET['page']);
+    $stmt = $conn->prepare('SELECT id, status FROM requests WHERE id = ?');
+    $stmt->bind_param('i', $request_id);
+    $stmt->execute();
+    $check_result = $stmt->get_result();
+    $stmt->close();
+
+    if (!$check_result || $check_result->num_rows === 0) {
+        $respond_error('Request not found.');
     }
-    header('Location: ' . $redirect_url);
-    exit();
+
+    $current_request = $check_result->fetch_assoc();
+    $old_status = $current_request['status'];
+
+    $conn->begin_transaction();
+    try {
+        $stmt = $conn->prepare('UPDATE requests SET status = ?, claiming_date = ?, is_archived = ?, requester_id = ? WHERE id = ?');
+        
+        $stmt->bind_param('ssiii', $new_status, $claiming_date, 0, $requester_id, $request_id);
+        if (!$stmt->execute()) {
+            throw new Exception('Failed to update request: ' . $conn->error);
+        }
+        $stmt->close();
+
+        $log_details = "Updated request #{$request_id} status to '{$new_status}'";
+
+        log_audit($conn, (int)$requester_id, 'update_request', $log_details);
+
+        $conn->commit();
+
+        if ($is_ajax) {
+            header('Content-Type: application/json');
+            $response = ['status' => 'success', 'message' => 'Status updated successfully.'];
+            echo json_encode($response);
+            exit();
+        }
+
+        $_SESSION['success'] = ($new_status === 'released')
+            ? 'Request marked as released and automatically archived.'
+            : 'Request status updated successfully.';
+        header('Location: ' . requests_redirect_url());
+        exit();
+    } catch (Exception $e) {
+        $conn->rollback();
+        error_log('Request update error: ' . $e->getMessage());
+        $respond_error('Error updating request: ' . $e->getMessage());
+    }
+
 }
+// Aray ko!
 
 // ---------------------------------------------------------------------
 // Listing: pagination, search, sort, filters
@@ -180,13 +334,19 @@ if ($status_filter !== '' && !in_array($status_filter, ALLOWED_STATUSES, true)) 
 // checked against a whitelist rather than escaped -- you cannot bind an
 // identifier as a query parameter.
 $sortable_columns = ['id', 'student_number', 'student_name', 'claiming_date', 'created_at', 'status'];
-$sort_column = (isset($_GET['sort']) && in_array($_GET['sort'], $sortable_columns, true)) ? $_GET['sort'] : 'released_at';
+$sort_column = (isset($_GET['sort']) && in_array($_GET['sort'], $sortable_columns, true)) ? $_GET['sort'] : 'claiming_date';
 $sort_order  = (isset($_GET['order']) && $_GET['order'] === 'desc') ? 'desc' : 'asc';
 $next_order  = ($sort_order === 'asc') ? 'desc' : 'asc';
+
+$view_archived = isset($_GET['view']) && $_GET['view'] === 'archived';
+$view_released = isset($_GET['view']) && $_GET['view'] === 'released';
 
 $conditions = [];
 $params = [];
 $types = '';
+
+$conditions[] = "status IS NULL";
+$conditions[] = 'is_archived = 0';
 
 if ($search !== '') {
     $conditions[] = '(title LIKE ? OR student_number LIKE ? OR student_name LIKE ? OR description LIKE ?)';
@@ -195,7 +355,11 @@ if ($search !== '') {
     $types .= 'ssss';
 }
 
-$conditions[] = "is_archived = 1 AND status = 'released'";
+if ($status_filter !== '') {
+    $conditions[] = 'status = ?';
+    $params[] = $status_filter;
+    $types .= 's';
+}
 
 $where_clause = 'WHERE ' . implode(' AND ', $conditions);
 
@@ -247,7 +411,7 @@ if ($all_requests_result) {
 }
 $stmt->close();
 
-$page_title = 'Archived Requests';
+$page_title = 'Online Requests';
 
 $programs = $conn->query('SELECT * FROM `programs`');
 $staffs_result = $conn->query('SELECT * FROM staffs');
@@ -611,7 +775,7 @@ $staffs_result = $conn->query('SELECT * FROM staffs');
                         <i class="fas fa-list"></i>
                         <span>Requests</span>
                     </a>
-                    <a href="online_requests.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'online_requests.php' ? 'active' : ''; ?>">
+                     <a href="online_requests.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'online_requests.php' ? 'active' : ''; ?>">
                         <i class="fas fa-list"></i>
                         <span>Online Requests</span>
                     </a>
@@ -619,7 +783,6 @@ $staffs_result = $conn->query('SELECT * FROM staffs');
                         <i class="fas fa-list"></i>
                         <span>Archives</span>
                     </a>
-                    
                     <?php if ($_SESSION['role'] === 'admin'): ?>
                     <a href="users.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'users.php' ? 'active' : ''; ?>">
                         <i class="fas fa-users"></i>
@@ -670,7 +833,12 @@ $staffs_result = $conn->query('SELECT * FROM staffs');
                     </div>
                 </div>
 
-                <form class="mb-4" method="GET" onsubmit="return false;">
+                <form class="mb-4" method="GET" onsubmit="return false;"> <?php if ($view_archived): ?>
+                    <input type="hidden" name="view" value="archived">
+                    <?php elseif ($view_released): ?>
+                    <input type="hidden" name="view" value="released">
+                    <?php endif; ?>
+                    
                     <div class="row">
                         <div class="col">
                             <div class="input-group">
@@ -715,7 +883,6 @@ $staffs_result = $conn->query('SELECT * FROM staffs');
                                 <th class="text-center"><a href="<?php echo getHeaderUrl('claiming_date', $sort_column, $next_order); ?>">Claim Date<?php echo $sort_column === 'claiming_date' ? ($sort_order === 'asc' ? '▲' : '▼') : ''; ?></a></th>
                                 <th class="text-center">Processed By</th>
                                 <th class="text-center"><a href="<?php echo getHeaderUrl('created_at', $sort_column, $next_order); ?>">Created<?php echo $sort_column === 'created_at' ? ($sort_order === 'asc' ? '▲' : '▼') : ''; ?></a></th>
-                                <th class="text-center"><a href="<?php echo getHeaderUrl('released_at', $sort_column, $next_order); ?>">Released Date<?php echo $sort_column === 'released_at' ? ($sort_order === 'asc' ? '▲' : '▼') : ''; ?></a></th>
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
@@ -742,7 +909,7 @@ $staffs_result = $conn->query('SELECT * FROM staffs');
                                             default => 'secondary'
                                         };
                                     ?> status-badge">
-                                        <?php echo str_replace('_', ' ', $request['status']); ?>
+                                        Submitted
                                     </span>
                                 </td>
                                 <td class="text-center">
@@ -782,36 +949,36 @@ $staffs_result = $conn->query('SELECT * FROM staffs');
                                             <?php echo htmlspecialchars($request['requester_name']); ?>
                                         </span>
                                     <?php else: ?>
-                                        <span class="text-muted">Unknown</span>
+                                        <span class="text-muted">Not Set</span>
                                     <?php endif; ?>
                                 </td>
                                 <td class="text-center"><?php echo date('Y-m-d H:i', strtotime($request['created_at'])); ?></td>
-                                <td class="text-center">
-                                        <?php echo date('Y-m-d H:i', strtotime($request['released_at'])); ?>
-                                </td>
                                 <td class="text-center">
                                     <button class="btn btn-sm btn-info" data-bs-toggle="modal" 
                                             data-bs-target="#viewRequestModal<?php echo $request['id']; ?>">
                                         <i class="fas fa-eye"></i>
                                     </button>
+                                    <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
 
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
-                                            data-bs-target="#editReleasedDateModal<?php echo $request['id']; ?>"
-                                            title="Edit Released Date">
-                                        <i class="fas fa-calendar-alt"></i>
-                                    </button>
-                                    
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal<?php echo $request['id']; ?>"
+                                                    title="Delete Permanently">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
 
                             <div class="modal fade" id="viewRequestModal<?php echo $request['id']; ?>" tabindex="-1">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
+                                        <form method="POST">
                                         <div class="modal-header">
                                             <h5 class="modal-title">Request Details</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                         </div>
                                         <div class="modal-body">
+                                            
                                             <h6>Title</h6>
                                             <p><?php echo htmlspecialchars($request['title']); ?></p>
                                             
@@ -838,31 +1005,41 @@ $staffs_result = $conn->query('SELECT * FROM staffs');
                                                         default => 'secondary'
                                                     };
                                                 ?>">
-                                                    <?php echo str_replace('_', ' ', $request['status']); ?>
+                                                    Submitted
                                                 </span>
-                                            </div>
-                                            <div class="mb-2">
-                                                <strong>Submitted By:</strong> 
-                                                <?php echo !empty($request['requester_name']) ? htmlspecialchars($request['requester_name']) : 'Unknown'; ?>
                                             </div>
                                             <div class="mb-3">
                                                 <strong>Created:</strong> 
                                                 <?php echo date('F d, Y H:i', strtotime($request['created_at'])); ?>
                                             </div>
                                             
-                                            <?php if (!empty($request['claiming_date'])): ?>
-                                            <h6>Claiming Schedule</h6>
-                                            <div class="mb-3">
-                                                <strong>Claiming Date:</strong> 
-                                                <?php echo date('F d, Y', strtotime($request['claiming_date'])); ?>
-                                            </div>
-                                            <?php endif; ?>
-                                            
                                             <?php if (!empty($request['description'])): ?>
                                             <h6>Details</h6>
                                             <p><?php echo nl2br(htmlspecialchars($request['description'])); ?></p>
-                                            <?php endif; ?>                                      
+                                            <?php endif; ?>  
+                                            <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
+                                            <input type="hidden" name="new_status" value="pending">
+                                            <input type="hidden" name="update_status" value="1">
+                                            <h6>Claiming Schedule</h6>
+                                            <div class="mb-3">
+                                                <strong>Claiming Date:</strong> 
+                                                <input required type="date" id="claiming_date" name="claiming_date" class="form-control" 
+                                                min="<?php echo date('Y-m-d'); ?>">
+                                            </div>
+                                            <div class="mb-3">
+                                            <strong>Processed By:</strong> 
+                                                <select name="clerk" id ="clerk" class="dropdown" required>
+                                                    <?php foreach ($staffs_result as $staff): ?>
+                                                        <option value="<?= $staff['id']; ?>"><?= htmlspecialchars($staff['staff_name']); ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+
                                         </div>
+                                        <div class="modal-footer">
+                                            <button type="submit" class="btn btn-primary">Create Request</button>
+                                        </div>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -911,43 +1088,42 @@ $staffs_result = $conn->query('SELECT * FROM staffs');
             </div>
         </div>
     </div>
-    
+
+
+    <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'staff'): ?>
     <?php foreach ($all_requests as $request): ?>
 
-    <div class="modal fade" id="editReleasedDateModal<?php echo $request['id']; ?>" tabindex="-1">
+    <div class="modal fade" id="deleteModal<?php echo $request['id']; ?>" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Released Date</h5>
+                    <h5 class="modal-title">Delete Request Permanently</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form method="POST">
                     <div class="modal-body">
+                        <p class="text-danger"><strong>Warning:</strong> This action cannot be undone!</p>
+                        <p>Are you sure you want to permanently delete this request?</p>
+                        <p><strong>Title:</strong> <?php echo htmlspecialchars($request['title']); ?></p>
+                        <p><strong>Student:</strong> <?php echo htmlspecialchars($request['student_name']); ?></p>
                         <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
-                        <div class="mb-3">
-                            <p><strong>Request Title:</strong> <?php echo htmlspecialchars($request['title']); ?></p>
-                            <p><strong>Student Name:</strong> <?php echo htmlspecialchars($request['student_name']); ?></p>
-                        </div>
-                        <div class="mb-3">
-                            <label for="released_date_<?php echo $request['id']; ?>" class="form-label">Released Date</label>
-                            <input type="datetime-local" id="released_date_<?php echo $request['id']; ?>" name="released_date" class="form-control" 
-                                   value="<?php echo !empty($request['released_at']) ? date('Y-m-d\TH:i', strtotime($request['released_at'])) : ''; ?>"
-                                   required>
-                        </div>
+                        <input type="hidden" name="delete" value="1">
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="update_released_date" class="btn btn-primary">Update Date</button>
+                        <button type="button" class="btn btn-second<input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
+                        <button type="submit" class="btn btn-danger">Delete Permanently</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <?php endforeach; ?>
     
+    <?php endforeach; ?>
+    <?php endif; ?>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
-    <script src="assets/js/archive.js" defer></script>
+    <script src="assets/js/pending_request.js" defer></script>
 </body>
 </html>

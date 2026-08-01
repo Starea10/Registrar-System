@@ -10,20 +10,20 @@ use PHPMailer\PHPMailer\SMTP;
 if(isset($_POST['send'])){
 $mail = new PHPMailer(true); // Enable exceptions
 
-$email_address = ""; // CHANGE THIS TO REGISTRAR'S OFFICE ACCOUNT!!!
-$password = ""; // CHANGE THIS TO REGISTRAR'S OFFICE ACCOUNT!!!
+$email_address = 'gtabang310@gmail.com'; // CHANGE THIS TO REGISTRAR'S OFFICE ACCOUNT!!!
+$pwd = 'wccykciszfinncpu'; // CHANGE THIS TO REGISTRAR'S OFFICE ACCOUNT!!!
 
 // SMTP Configuration
 $mail->isSMTP();
 $mail->Host = 'smtp.gmail.com'; // Your SMTP server
 $mail->SMTPAuth = true;
+$mail->SMTPSecure = 'tls';
 $mail->Username = $email_address; 
-$mail->Password = $password; 
-$mail->SMTPSecure = 'ssl';
-$mail->Port = 465;
+$mail->Password = $pwd; 
+$mail->Port = 587;
 
 // Sender and recipient settings
-$mail->setFrom($email_address, 'Registrar');
+$mail->setFrom($email_address, 'CvSU Naic Office of the Campus Registrar');
 $mail->addAddress($_POST['email']);
 
 // Sending plain text email
@@ -33,7 +33,7 @@ $mail->Body    =
 "
 Dear Student,
 
-Your request has been successfully submitted and is now being processed.
+Your request has been successfully submitted and will be processed accordingly.
 
 Status: Request Submitted
 

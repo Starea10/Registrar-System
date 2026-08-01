@@ -8,12 +8,12 @@
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="assets/css/variables.css">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/style.css">
   <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/assets/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"> -->
 
 </head>
 
-<body>
+<body>  
   <!-- ===================================
   NAVBAR
   =================================== -->
@@ -54,7 +54,7 @@ HERO SECTION (Updated with Tracker Button)
       <p>Request official academic documents online, track their progress, and receive updates in real time without visiting the Registrar's Office.</p>
       <div class="hero-buttons">
         <a href="request-online.php" class="btn-primary" style="background: var(--secondary); color: var(--text);">Get Started</a>
-        <a href="track.php" class="btn-primary" style="background: var(--primary); color: #fff;">🔍 Track Request</a>
+        <a href="client_view.php" class="btn-primary" style="background: var(--primary); color: #fff;">🔍 Track Request</a>
         <a href="#services" class="btn-outline">Learn More</a>
       </div>
     </div>
@@ -304,9 +304,6 @@ DOCUMENT INFO MODAL (Popup Viewer)
         <h4>💡 Note:</h4>
         <p id="modalNote"></p>
       </div>
-    </div>
-    <div class="modal-footer">
-      <a id="modalRequestBtn" href="#" class="btn-primary" style="background: var(--secondary); color: var(--text); width: 100%; text-align: center;">Request This Document Now →</a>
     </div>
   </div>
 </div>

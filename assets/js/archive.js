@@ -33,17 +33,15 @@ function showAlert(message, type = 'success') {
  */
 async function performSearch() {
     const searchInput = document.getElementById('searchInput');
-    const statusFilter = document.querySelector('select[name="status"]');
     const tableBody = document.getElementById('requestsTableBody');
     const paginationInfo = document.getElementById('paginationInfo');
     const paginationNav = document.getElementById('paginationNav');
 
     const query = searchInput.value;
-    const status = statusFilter.value;
     const params = new URLSearchParams(window.location.search);
     const view = params.get('view') || '';
 
-    const fetchUrl = `?ajax=1&search=${encodeURIComponent(query)}&status=${encodeURIComponent(status)}&view=${encodeURIComponent(view)}`;
+    const fetchUrl = `?ajax=1&search=${encodeURIComponent(query)}&view=${encodeURIComponent(view)}`;
 
     try {
         const response = await fetch(fetchUrl);
@@ -62,59 +60,6 @@ async function performSearch() {
     }
 }
 
-/**
- * Handle AJAX status updates
- */
-async function handleStatusUpdate(select) {
-    const form = select.closest('form');
-    const originalStatus = select.dataset.originalStatus;
-
-    // Confirm if marking as released
-    if (select.value === 'released') {
-        if (!confirm('Marking this request as "Released" will automatically archive it. Are you sure?')) {
-            select.value = originalStatus; // Revert on cancel
-            return;
-        }
-    }
-
-    const formData = new FormData(form);
-    formData.append('is_ajax', '1');
-
-    try {
-        const response = await fetch('requests.php', {
-            method: 'POST',
-            body: formData
-        });
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-            showAlert(data.message, 'success');
-            
-            if (data.action === 'remove_row') {
-                const row = select.closest('tr');
-                row.style.transition = 'opacity 0.5s ease';
-                row.style.opacity = '0';
-                setTimeout(() => {
-                    row.remove();
-                }, 500);
-            } else {
-                // Update color class
-                select.className = select.className.replace(/status-\w+/g, '');
-                select.classList.add('status-' + select.value);
-                // Update the original status so reverting works correctly next time
-                select.dataset.originalStatus = select.value;
-            }
-        } else {
-            showAlert(data.message || 'An unknown error occurred.', 'danger');
-            select.value = originalStatus; // Revert on error
-        }
-    } catch (error) {
-        console.error('Status update error:', error);
-        console.log(error);
-        showAlert('A network error occurred. Please try again.', 'danger');
-        select.value = originalStatus; // Revert on network error
-    }
-}
 
 /**
  * Restrict input field to numbers only
@@ -336,7 +281,6 @@ function toggleContactInput(){
 function initializeRequestSystem() {
     // Search functionality
     const searchInput = document.getElementById('searchInput');
-    const statusFilter = document.querySelector('select[name="status"]');
 
     if (searchInput) {
         searchInput.addEventListener('input', () => {
@@ -344,35 +288,6 @@ function initializeRequestSystem() {
             debounceTimer = setTimeout(performSearch, 300);
         });
     }
-
-    if (statusFilter) {
-        statusFilter.addEventListener('change', performSearch);
-    }
-
-    // Status update functionality
-    const tableBody = document.getElementById('requestsTableBody');
-    if (tableBody) {
-        tableBody.addEventListener('change', function(e) {
-            if (e.target && e.target.classList.contains('status-select')) {
-                handleStatusUpdate(e.target);
-            }
-        });
-    }
-
-    // Numerical field restrictions
-    const numericalFields = document.querySelectorAll('.numerical-only');
-    numericalFields.forEach(field => {
-        restrictToNumbers(field);
-    });
-
-    // New request form validation
-    const newRequestForm = document.querySelector('#newRequestModal form');
-    if (newRequestForm) {
-        newRequestForm.addEventListener('submit', validateNewRequestForm);
-    }
-
-    // Make toggleCertificationInput globally available for onclick events
-    window.toggleCertificationInput = toggleCertificationInput;
 }
 
 // Initialize when DOM is loaded

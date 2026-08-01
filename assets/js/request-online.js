@@ -35,38 +35,82 @@ function showStep(index) {
 /*=====================================
 VALIDATE STEP
 =====================================*/
-// function validateStep(step) {
-//   const inputs = steps[step].querySelectorAll('input, select, textarea');
-//   let valid = true;
+function validateStep(step) {
+  const inputs = steps[step].querySelectorAll('input, select, textarea');
+  let valid = true;
 
-//   inputs.forEach(input => {
-//     if (input.type === 'button' || input.type === 'checkbox') return;
+  inputs.forEach(input => {
+    if (input.type === 'button' || input.type === 'checkbox') return;
 
-//     if (input.value.trim() === '') {
-//       input.classList.add('error');
-//       input.classList.remove('success');
-//       valid = false;
-//     } else {
-//       input.classList.remove('error');
-//       input.classList.add('success');
-//     }
-//   });
-
-//   return valid;
-// }
-
-/*=====================================
-GENERATE SUMMARY
-=====================================*/
-function generateSummary() {
-  const data = new FormData(form);
-  let html = '';
-
-  data.forEach((value, key) => {
-    html += `<p><strong>${key}</strong><br>${value}</p>`;
+    if (input.value.trim() === '') {
+      input.classList.add('error');
+      input.classList.remove('success');
+      valid = false;
+    } else {
+      input.classList.remove('error');
+      input.classList.add('success');
+    }
   });
 
-  summary.innerHTML = html;
+  return valid;
+}
+
+function generateSummary() {
+    const data = new FormData(form);
+    let html = "";
+
+    // Convert FormData to object
+    const values = {};
+    data.forEach((value, key) => {
+        values[key] = value;
+    });
+
+    // If Program is Others, replace it with Course input
+    if (
+        values["Program"] &&
+        values["Program"].toLowerCase() === "others" &&
+        values["Course"]
+    ) {
+        values["Program"] = values["Course"];
+    }
+
+    // If Document is Others, replace it with specified document
+    if (
+        values["Document"] &&
+        values["Document"].toLowerCase() === "others" &&
+        values["others_type"]
+    ) {
+        values["Document"] = values["others_type"];
+    }
+
+    // If Purpose is Others, replace it with specified purpose
+    if (
+        values["Purpose"] &&
+        values["Purpose"].toLowerCase() === "others" &&
+        values["others_purpose"]
+    ) {
+        values["Purpose"] = values["others_purpose"];
+    }
+
+    // Fields that should never appear in summary
+    const hiddenFields = [
+        "Course",
+        "others_type",
+        "others_purpose"
+    ];
+
+    for (const key in values) {
+        if (hiddenFields.includes(key)) continue;
+
+        html += `
+            <p>
+                <strong>${key}</strong><br>
+                ${values[key]}
+            </p>
+        `;
+    }
+
+    summary.innerHTML = html;
 }
 
 /*=====================================
@@ -212,91 +256,59 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-const requirements = {
-    TOR: [
-        {
-            label: "Student Clearance",
-            accept: "image/*",
-            name: "clearance"
-        }
-    ],
-
-    COE: [
-        {
-            label: "Student ID",
-            accept: "image/*",
-            name: "student_id"
-        },
-        {
-            label: "Registration Form",
-            accept: "image/*,.pdf",
-            name: "registration_form"
-        }
-    ],
-
-    Diploma: [],
-
-    COG: [],
-
-    Form137: [
-        {
-            label: "Valid ID",
-            accept: "image/*",
-            name: "valid_id"
-        }
-    ],
-
-    CAV: [
-        {
-            label: "Passport",
-            accept: "image/*",
-            name: "passport"
-        }
-    ]
-};
-
 const documentType = document.getElementById("documentType");
-const requirementContainer = document.getElementById("documentRequirements");
-
-function renderRequirements(documentName) {
-
-    requirementContainer.innerHTML = "";
-
-    const docs = requirements[documentName];
-
-    if (!docs || docs.length === 0)
-        return;
-
-    let html = `
-        <div class="requirements-section">
-            <h3>Required Documents</h3>
-            <p>Please upload the following before submitting your request.</p>
-    `;
-
-    docs.forEach(doc => {
-
-        html += `
-            <div class="input-group full">
-                <label>${doc.label}</label>
-
-                <input
-                    type="file"
-                    name="${doc.name}"
-                    accept="${doc.accept}"
-                    required
-                >
-            </div>
-        `;
-
-    });
-
-    html += "</div>";
-
-    requirementContainer.innerHTML = html;
-}
 
 documentType.addEventListener("change", function () {
-    renderRequirements(this.value);
 });
 
-renderRequirements(documentType.value);
+
+/////////
+const programSelect = document.getElementById("program");
+const otherCourseGroup = document.getElementById("otherCourseGroup");
+const otherCourseInput = document.getElementById("Course");
+
+programSelect.addEventListener("change", function () {
+    if (this.value === "others") {
+        otherCourseGroup.style.display = "block";
+        otherCourseInput.required = true;
+    } else {
+        otherCourseGroup.style.display = "none";
+        otherCourseInput.required = false;
+        otherCourseInput.value = "";
+    }
+});
+
+const documentSelect = document.getElementById("documentType");
+const otherDocumentGroup = document.getElementById("otherDocumentGroup");
+const otherDocumentInput = document.getElementById("otherDocument");
+
+documentSelect.addEventListener("change", function () {
+
+    if (this.value === "Others") {
+        otherDocumentGroup.style.display = "block";
+        otherDocumentInput.required = true;
+    } else {
+        otherDocumentGroup.style.display = "none";
+        otherDocumentInput.required = false;
+        otherDocumentInput.value = "";
+    }
+
+    // Keep rendering required files
+     
+});
+
+const purposeSelect = document.querySelector('select[name="Purpose"]');
+const otherPurpose = document.getElementById("others_purpose");
+
+purposeSelect.addEventListener("change", function () {
+
+    if (this.value === "Others") {
+        otherPurpose.style.display = "block";
+        otherPurpose.required = true;
+    } else {
+        otherPurpose.style.display = "none";
+        otherPurpose.required = false;
+        otherPurpose.value = "";
+    }
+
+});

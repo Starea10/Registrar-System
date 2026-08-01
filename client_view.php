@@ -646,7 +646,7 @@ $requests_result = $conn->query($sql);
             <!-- Header Section -->
             <div class="header-section row">
                 <div class="container col-md-1">
-                    <button onclick="window.location.href='index-old.php'" class="btn btn-sm btn-light">
+                    <button onclick="window.location.href='index.php'" class="btn btn-sm btn-light">
                         <i class="fa-solid fa-house"></i>
                     </button>
                 </div>

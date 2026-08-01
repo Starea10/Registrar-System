@@ -33,6 +33,11 @@ if ($date_filter) {
     $where_conditions[] = "DATE(a.created_at) = '$date_filter'";
 }
 
+$sortable_columns = ['id', 'action', 'created_at'];
+$sort_column = (isset($_GET['sort']) && in_array($_GET['sort'], $sortable_columns, true)) ? $_GET['sort'] : 'created_at';
+$sort_order  = (isset($_GET['order']) && $_GET['order'] === 'asc') ? 'asc' : 'desc';
+$next_order  = ($sort_order === 'asc') ? 'desc' : 'asc';
+
 $where_clause = "WHERE " . implode(' AND ', $where_conditions);
 
 // Get audit entries
@@ -40,7 +45,7 @@ $sql = "SELECT a.*, u.staff_name
         FROM audit_trail a 
         LEFT JOIN staffs u ON a.user_id = u.id 
         $where_clause
-        ORDER BY a.created_at DESC 
+        ORDER BY a.{$sort_column} {$sort_order}
         LIMIT $offset, $per_page";
 $audit_entries = $conn->query($sql);
 
@@ -51,7 +56,8 @@ $total = $total_result->fetch_assoc()['total'];
 $total_pages = ceil($total / $per_page);
 
 // Get unique actions for filter dropdown
-$actions_sql = "SELECT DISTINCT action FROM audit_trail WHERE action IN ('create_request', 'update_request', 'archive_request', 'restore_request', 'delete_request') ORDER BY action";
+$actions_sql = "SELECT DISTINCT action FROM audit_trail WHERE action IN ('create_request', 'update_request', 'archive_request', 'update_released_date
+', 'restore_request', 'delete_request') ORDER BY action";
 $actions_result = $conn->query($actions_sql);
 $available_actions = array();
 if ($actions_result) {
@@ -60,6 +66,22 @@ if ($actions_result) {
     }
 }
 
+function getHeaderUrl(string $columnName, string $currentSortColumn, string $nextOrder): string
+{
+    $query = $_GET;
+    $query['sort'] = $columnName;
+    $query['order'] = ($currentSortColumn === $columnName) ? $nextOrder : 'asc';
+
+    return $_SERVER['PHP_SELF'] . '?' . http_build_query($query);
+}
+
+function getPaginationNextPageUrl(int $p): string
+{
+    $query = $_GET;
+    $query['page'] = $p;
+
+    return $_SERVER['PHP_SELF'] . '?' . http_build_query($query);
+}
 
 if (isset($_GET['ajax'])) {
     ob_start();
@@ -108,6 +130,8 @@ if (isset($_GET['ajax'])) {
     }
     $table_html = ob_get_clean();
 
+///PSST...OJT, HALLO
+
     $pagination_info = '';
     if ($total > 0) {
         $pagination_info = 'Showing ' . ($offset + 1) . ' to ' . min($offset + $per_page, $total) . ' of ' . $total . ' entries';
@@ -144,6 +168,11 @@ if (isset($_GET['ajax'])) {
             box-sizing: border-box; 
         }
         
+        a {
+            color: #000;
+            text-decoration: none;
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--green-light);
@@ -211,7 +240,7 @@ if (isset($_GET['ajax'])) {
             text-align: left;
             border-bottom: 1px solid var(--border-color);
         }
-        
+
         th {
             background-color: var(--green-main);
             color: black;
@@ -449,10 +478,14 @@ if (isset($_GET['ajax'])) {
                         <i class="fas fa-list"></i>
                         <span>Requests</span>
                     </a>
+                     <a href="online_requests.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'online_requests.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-list"></i>
+                        <span>Online Requests</span>
+                    </a>
                      <a href="archives.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'archives.php' ? 'active' : ''; ?>">
                         <i class="fas fa-list"></i>
                         <span>Archives</span>
-                    </a>    
+                    </a>
                     <?php if ($_SESSION['role'] === 'admin'): ?>
                     <a href="users.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'users.php' ? 'active' : ''; ?>">
                         <i class="fas fa-users"></i>
@@ -531,11 +564,11 @@ if (isset($_GET['ajax'])) {
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th><a href="<?php echo getHeaderUrl('id', $sort_column, $next_order); ?>">ID<?php echo $sort_column === 'id' ? ($sort_order === 'asc' ? '▲' : '▼') : ''; ?></a></th>
                                 <th>User</th>
                                 <th>Action</th>
                                 <th>Details</th>
-                                <th>Timestamp</th>
+                                <th><a href="<?php echo getHeaderUrl('created_at', $sort_column, $next_order); ?>">Timestamp<?php echo $sort_column === 'created_at' ? ($sort_order === 'asc' ? '▲' : '▼') : ''; ?></a></th>
                             </tr>
                         </thead>
                         <tbody id="auditTableBody">
@@ -606,7 +639,7 @@ if (isset($_GET['ajax'])) {
                     <ul class="pagination justify-content-center">
                         <?php if ($page > 1): ?>
                         <li class="page-item">
-                            <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo $search ? "&search=" . urlencode($search) : ''; ?><?php echo $action_filter ? "&action=" . urlencode($action_filter) : ''; ?><?php echo $date_filter ? "&date=" . urlencode($date_filter) : ''; ?>" aria-label="Previous">
+                            <a class="page-link" href="<?php echo getPaginationNextPageUrl($page - 1) ?>" aria-label="Previous">
                                 <span aria-hidden="true">&laquo;</span>
                             </a>
                         </li>
@@ -619,7 +652,7 @@ if (isset($_GET['ajax'])) {
                         for ($i = $start_page; $i <= $end_page; $i++):
                         ?>
                         <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
-                            <a class="page-link" href="?page=<?php echo $i; ?><?php echo $search ? "&search=" . urlencode($search) : ''; ?><?php echo $action_filter ? "&action=" . urlencode($action_filter) : ''; ?><?php echo $date_filter ? "&date=" . urlencode($date_filter) : ''; ?>">
+                            <a class="page-link" href="<?php echo getPaginationNextPageUrl($i) ?>">
                                 <?php echo $i; ?>
                             </a>
                         </li>
@@ -627,7 +660,7 @@ if (isset($_GET['ajax'])) {
 
                         <?php if ($page < $total_pages): ?>
                         <li class="page-item">
-                            <a class="page-link" href="?page=<?php echo $page + 1; ?><?php echo $search ? "&search=" . urlencode($search) : ''; ?><?php echo $action_filter ? "&action=" . urlencode($action_filter) : ''; ?><?php echo $date_filter ? "&date=" . urlencode($date_filter) : ''; ?>" aria-label="Next">
+                            <a class="page-link" href="<?php echo getPaginationNextPageUrl($page + 1) ?>" aria-label="Next">
                                 <span aria-hidden="true">&raquo;</span>
                             </a>
                         </li>

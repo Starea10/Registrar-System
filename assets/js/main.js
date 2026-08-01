@@ -325,8 +325,6 @@ data.requirements.forEach(req => {
 });
 
   // Set Direct Request Link with Query Parameter
-  const requestBtn = document.getElementById('modalRequestBtn');
-  requestBtn.href = `request.php?doc=${encodeURIComponent(data.title)}`;
 
   document.getElementById('docModal').classList.add('active');
 }

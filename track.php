@@ -1,3 +1,4 @@
+<!-- NOTE: pakifinish nalang mga ka-ojt salamat, di namin natapos tsaka need rin kasi compatible sya dun sa existing database nung school, kaya di maimplement ito haha -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +9,7 @@
   
   <!-- Stylesheets -->
   <link rel="stylesheet" href="assets/css/variables.css">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/request.css">
 </head>
 

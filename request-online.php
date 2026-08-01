@@ -22,7 +22,7 @@
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="assets/css/variables.css">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/request.css">
 </head>
 
@@ -69,7 +69,16 @@
         <div class="grid-2">
           <div class="input-group">
             <label>Student Number</label>
-            <input type="text" inputmode="numeric" pattern="[0-9]*" placeholder='202310000' >
+            <input 
+                type="text" 
+                name="Student Number"
+                inputmode="numeric" 
+                pattern="[0-9]*" 
+                placeholder="202310000">
+          </div>
+          <div class="input-group">
+            <label>Contact Number</label>
+            <input type="text" name="Contact Number" placeholder="0912 345 6789">
           </div>
           <div class="input-group">
             <label>Student Email</label>
@@ -89,14 +98,24 @@
           </div>
           <div class="input-group">
             <label>Course</label>
-            <select name="Program">
+            <select name="Program" id="program">
               <option value="">Select Course</option>
               <?php foreach ($programs as $program): ?>
-                <option value="<?= $program['program']; ?>"><?= htmlspecialchars($program['program_name']); ?></option>
-                <?php endforeach; ?>
-                <option value="others">Others</option>
-              </select>
-            </div>
+                <option value="<?= $program['program']; ?>">
+                  <?= htmlspecialchars($program['program_name']); ?>
+                </option>
+              <?php endforeach; ?>
+              <option value="others">Others</option>
+            </select>
+          </div>
+
+          <div class="input-group" id="otherCourseGroup" style="display:none;">
+              <label>Please specify your course</label>
+              <input
+                  type="text"
+                  id="Course"
+                  name="Course"
+                  placeholder="Enter your course">
           </div>
           <div class="buttons">
             <button type="button" class="next">Next →</button>
@@ -122,12 +141,16 @@
                 <option value="Certification">Certification</option>
                 <option value="Others">Others</option>
             </select>
+        </div>
 
-            <input type="text"
-                   name="others_type"
-                   id="others_type"
-                   placeholder="Specify document here"
-                   style="display:none;">
+        <!-- Hidden until "Others" is selected -->
+        <div class="input-group" id="otherDocumentGroup" style="display:none;">
+            <label>Please specify the document</label>
+            <input
+                type="text"
+                id="otherDocument"
+                name="others_type"
+                placeholder="Enter document name">
         </div>
 
         <!-- Purpose -->
@@ -154,7 +177,7 @@
     </div>
 
     <!-- NEW DYNAMIC REQUIREMENTS SECTION -->
-    <div id="documentRequirements"></div>
+    <!-- <div id="documentRequirements"></div> -->
 
     <!-- Additional Notes -->
     <div class="input-group full">
