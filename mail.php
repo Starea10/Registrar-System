@@ -1,3 +1,9 @@
+/**
+ * Email sending helper page.
+ *
+ * Uses PHPMailer to send notification emails related to request updates,
+ * confirmations, and registrar communication tasks.
+ */
 <?php
 require './phpmailer/src/Exception.php';
 require './phpmailer/src/PHPMailer.php';

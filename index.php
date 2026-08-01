@@ -1,3 +1,9 @@
+/**
+ * Public home page.
+ *
+ * Renders the main landing screen with the registrar office overview,
+ * document services, and links to request and tracking flows.
+ */
 <!DOCTYPE html>
 <html lang="en">
 <head>

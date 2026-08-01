@@ -1,9 +1,15 @@
+/**
+ * User management page.
+ *
+ * Handles admin-side user maintenance, account creation, and role-based
+ * access operations for the registrar portal.
+ */
 <?php
 session_start();
 require_once 'includes/config.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: index-old.php');
+    header('Location: index.php');
     exit();
 }
 

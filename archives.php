@@ -1,3 +1,9 @@
+/**
+ * Archived requests page.
+ *
+ * Displays archived registrar requests and provides restore/archive-related
+ * management actions for authorized staff users.
+ */
 <?php
 /**
  * requests_logic.php
@@ -29,7 +35,7 @@ session_start();
 require_once 'includes/config.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: index-old.php');
+    header('Location: index.php');
     exit();
 }
 

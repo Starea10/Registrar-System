@@ -1,9 +1,15 @@
+/**
+ * Audit trail page.
+ *
+ * Shows the store of audit actions and administrative activity for review,
+ * filtering, and monitoring by authorized staff members.
+ */
 <?php
 session_start();
 require_once 'includes/config.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: index-old.php');
+    header('Location: index.php');
     exit();
 }
 

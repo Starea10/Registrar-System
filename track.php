@@ -1,3 +1,9 @@
+/**
+ * Request tracking page.
+ *
+ * Provides the browser-facing tracking interface used to follow the status
+ * of an existing document request using the request reference information.
+ */
 <!-- NOTE: pakifinish nalang mga ka-ojt salamat, di namin natapos tsaka need rin kasi compatible sya dun sa existing database nung school, kaya di maimplement ito haha -->
 <!DOCTYPE html>
 <html lang="en">

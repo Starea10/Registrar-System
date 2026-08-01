@@ -29,7 +29,7 @@ session_start();
 require_once 'includes/config.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: index-old.php');
+    header('Location: index.php');
     exit();
 }
 
@@ -283,8 +283,9 @@ if (isset($_POST['update_status']) && isset($_POST['request_id']) && isset($_POS
     $conn->begin_transaction();
     try {
         $stmt = $conn->prepare('UPDATE requests SET status = ?, claiming_date = ?, is_archived = ?, requester_id = ? WHERE id = ?');
-        
-        $stmt->bind_param('ssiii', $new_status, $claiming_date, 0, $requester_id, $request_id);
+        $is_archived = 0;
+
+        $stmt->bind_param('ssiii', $new_status, $claiming_date, $is_archived, $requester_id, $request_id);
         if (!$stmt->execute()) {
             throw new Exception('Failed to update request: ' . $conn->error);
         }
