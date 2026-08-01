@@ -1,9 +1,9 @@
-/**
+<!-- /**
  * Staff login page.
  *
  * Displays the portal login form that submits credentials to the shared
  * authentication handler for session-based sign-in.
- */
+ */ -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
