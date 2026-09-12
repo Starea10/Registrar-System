@@ -1,3 +1,9 @@
+/**
+ * Request search handler.
+ *
+ * Responds to AJAX-style search requests for registrar records and returns
+ * filtered request data for the frontend search and listing views.
+ */
 <?php
 session_start();
 require_once 'includes/config.php';

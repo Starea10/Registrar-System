@@ -1,0 +1,23 @@
+/*=====================================
+    GLOBAL VARIABLES (CvSU THEME)
+=====================================*/
+:root {
+    --primary: #006633;        /* CvSU Green */
+    --primary-dark: #004D26;   /* Deep Green */
+    --primary-light: #0E7A3E;
+    
+    --secondary: #F2C94C;      /* CvSU Gold / Yellowish Gold */
+    --secondary-dark: #D4AC0D;
+    
+    --background: #F8FAF7;
+    --section: #EEF6F0;
+    --white: #FFFFFF;
+    
+    --text: #1E293B;
+    --gray: #64748B;
+    --border: #D7E5DA;
+    
+    --shadow: 0 8px 30px rgba(0, 0, 0, .08);
+    --radius: 14px;
+    --transition: .3s ease;
+}

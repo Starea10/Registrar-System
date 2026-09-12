@@ -1,3 +1,9 @@
+<!-- /**
+ * Admin and staff dashboard.
+ *
+ * Renders the secure dashboard view with request metrics, charts, status
+ * counters, and action controls for registrar operations.
+ */ -->
 <?php
 session_start();
 require_once 'includes/config.php';
@@ -31,6 +37,7 @@ $stats = $result->fetch_assoc();
 
 // Get available years for dropdown (for main dashboard charts based on creation date)
 $sql_years = "SELECT DISTINCT YEAR(created_at) as year FROM requests ORDER BY year DESC";
+
 $years_result = $conn->query($sql_years);
 $available_years = [];
 while ($year_row = $years_result->fetch_assoc()) {
@@ -139,6 +146,71 @@ while ($row = $daily_released_result->fetch_assoc()) {
 $current_year_released = isset($released_by_year[$selected_year]) ? 
     array_values($released_by_year[$selected_year]) : 
     array_fill(0, 12, 0);
+
+// NEW: Get for_release data for modal
+// *** NEW *** Get available years based on RELEASED date for modal filter
+$sql_for_release_years = "SELECT DISTINCT YEAR(updated_at) as year FROM requests WHERE (status = 'released' OR status = 'for_release') ORDER BY year DESC";
+$for_release_years_result = $conn->query($sql_for_release_years);
+$available_for_release_years = [];
+while ($year_row = $for_release_years_result->fetch_assoc()) {
+    $available_for_release_years[] = $year_row['year'];
+}
+
+// *** MODIFIED *** Get monthly released requests data based on released_at
+$sql_for_release = "SELECT 
+                    YEAR(updated_at) as year,
+                    MONTH(updated_at) as month,
+                    COUNT(*) as count
+                FROM requests
+                WHERE (status = 'for_release' or status = 'released')
+                GROUP BY YEAR(updated_at), MONTH(updated_at)
+                ORDER BY year DESC, month";
+$for_release_result = $conn->query($sql_for_release);
+
+// Organize released data by year
+$for_release_by_year = [];
+while ($row = $for_release_result->fetch_assoc()) {
+    if (!isset($for_release_by_year[$row['year']])) {
+        $for_release_by_year[$row['year']] = array_fill(1, 12, 0);
+    }
+    $for_release_by_year[$row['year']][$row['month']] = $row['count'];
+}
+
+// *** MODIFIED *** Get daily released requests data based on released_at
+$sql_daily_for_release = "SELECT 
+                        YEAR(updated_at) as year,
+                        MONTH(updated_at) as month,
+                        DAY(updated_at) as day,
+                        COUNT(*) as count
+                    FROM requests
+                    WHERE (status = 'for_release' or status = 'released')
+                    GROUP BY YEAR(updated_at), MONTH(updated_at), DAY(updated_at)
+                    ORDER BY year DESC, month, day";
+$daily_for_release_result = $conn->query($sql_daily_for_release);
+
+
+// Organize daily released data by year-month
+$daily_for_release_by_year_month = [];
+while ($row = $daily_for_release_result->fetch_assoc()) {
+    $year = $row['year'];
+    $month = $row['month'];
+    $day = $row['day'];
+    
+    if (!isset($daily_for_release_by_year_month[$year])) {
+        $daily_for_release_by_year_month[$year] = [];
+    }
+    if (!isset($daily_for_release_by_year_month[$year][$month])) {
+        $days_in_month_temp = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+        $daily_for_release_by_year_month[$year][$month] = array_fill(1, $days_in_month_temp, 0);
+    }
+    $daily_for_release_by_year_month[$year][$month][$day] = $row['count'];
+}
+
+// Get current year's released data for the modal
+$current_year_for_release = isset($for_release_by_year[$selected_year]) ? 
+    array_values($for_release_by_year[$selected_year]) : 
+    array_fill(0, 12, 0);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -146,7 +218,8 @@ $current_year_released = isset($released_by_year[$selected_year]) ?
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - RMS</title>
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="icon" href="assets/images/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="assets/css/styles2.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -838,6 +911,14 @@ $current_year_released = isset($released_by_year[$selected_year]) ?
                         <i class="fas fa-list"></i>
                         <span>Requests</span>
                     </a>
+                    <a href="online_requests.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'online_requests.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-list"></i>
+                        <span>Online Requests</span>
+                    </a>
+                     <a href="archives.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'archives.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-list"></i>
+                        <span>Archives</span>
+                    </a>
                     <a href="users.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'users.php' ? 'active' : ''; ?>">
                         <i class="fas fa-users"></i>
                         <span>Users</span>
@@ -859,47 +940,44 @@ $current_year_released = isset($released_by_year[$selected_year]) ?
 
             <div class="col-md-10 p-4">
                 <div class="page-header">
-                    <h2 class="page-title">Cavite State University - Naic Registrar</h2>
-                    <div class="admin-badge">
-                        <i class="fas fa-shield-alt me-1"></i>Admin Dashboard
-                    </div>
+                    <h2 class="page-title">Cavite State University Naic - Office of the Campus Registrar</h2>
                 </div>
                 
                 <div class="stats-grid">
-                    <div class="stat-card primary">
+                    <div class="stat-card primary clickable" onclick="redirectToRequestPage('')">
                         <div class="stat-icon">
                             <i class="fas fa-file-alt"></i>
                         </div>
                         <h5><i class="fas fa-file-alt me-2"></i>Total Requests</h5>
                         <h3><?php echo number_format($stats['total_requests']); ?></h3>
                     </div>
-                    <div class="stat-card warning">
+                    <div class="stat-card warning clickable" onclick="redirectToRequestPage('pending')">
                         <div class="stat-icon">
                             <i class="fas fa-clock"></i>
                         </div>
                         <h5><i class="fas fa-clock me-2"></i>Pending Requests</h5>
                         <h3><?php echo number_format($stats['pending']); ?></h3>
                     </div>
-                    <div class="stat-card processing">
+                    <div class="stat-card processing clickable" onclick="redirectToRequestPage('processing')">
                         <div class="stat-icon">
                             <i class="fas fa-cog"></i>
                         </div>
                         <h5><i class="fas fa-cog me-2"></i>Processing</h5>
                         <h3><?php echo number_format($stats['processing']); ?></h3>
                     </div>
-                    <div class="stat-card signature">
+                    <div class="stat-card signature clickable" onclick="redirectToRequestPage('for_signature')">
                         <div class="stat-icon">
                             <i class="fas fa-signature"></i>
                         </div>
                         <h5><i class="fas fa-signature me-2"></i>For Signature</h5>
                         <h3><?php echo number_format($stats['for_signature']); ?></h3>
                     </div>
-                    <div class="stat-card for release">
+                    <div class="stat-card for release clickable" onclick="redirectToRequestPage('for_release')">
                         <div class="stat-icon">
                             <i class="fas fa-paper-plane"></i>
                         </div>
                         <h5><i class="fas fa-paper-plane me-2"></i>For Release</i></h5>
-                        <h3><?php echo number_format($stats['for_release']); ?></h3>
+                        <h3><?php echo number_format($stats['for_release'] + $stats['released']); ?></h3>
                     </div>
                     <div class="stat-card success clickable" onclick="showReleasedModal()">
                         <div class="stat-icon">

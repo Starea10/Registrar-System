@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Aug 20, 2025 at 06:47 AM
+-- Host: localhost
+-- Generation Time: Sep 12, 2026 at 09:52 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -52,6 +52,32 @@ CREATE TABLE `audit_trail` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `programs`
+--
+
+CREATE TABLE `programs` (
+  `program` varchar(16) NOT NULL,
+  `program_name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `programs`
+--
+
+INSERT INTO `programs` (`program`, `program_name`) VALUES
+('BSCS', 'Bachelor of Science in Computer Science'),
+('BSIT', 'Bachelor of Science in Information Technology'),
+('BSFAS', 'BS in Fisheries and Aquatic Sciences'),
+('BSEd', 'Bachelor in Secondary Education'),
+('BEEd', 'Bachelor in Elementary Education'),
+('BSBA', 'Bachelor of Science in Business Administration'),
+('BSHM', 'Bachelor of Science in Hospitality Management'),
+('LSHS', 'Laboratory Science High School'),
+('TCP', 'Teacher Certificate Program');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `requests`
 --
 
@@ -63,13 +89,39 @@ CREATE TABLE `requests` (
   `requester_id` int(11) DEFAULT NULL,
   `status` enum('pending','processing','for_signature','for_release','released') DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `student_number` varchar(50) DEFAULT NULL,
   `student_name` varchar(255) DEFAULT NULL,
   `is_archived` tinyint(1) DEFAULT 0,
   `released_at` datetime DEFAULT NULL,
-  `document_path` varchar(255) DEFAULT NULL
+  `document_path` varchar(255) DEFAULT NULL,
+  `email_address` varchar(128) DEFAULT NULL,
+  `document_type` varchar(128) DEFAULT NULL,
+  `purpose` varchar(64) DEFAULT NULL,
+  `is_legacy` tinyint(4) NOT NULL DEFAULT 1,
+  `phone_number` varchar(30) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `staffs`
+--
+
+CREATE TABLE `staffs` (
+  `id` int(11) NOT NULL,
+  `staff_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `is_deleted` tinyint(4) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `staffs`
+--
+
+INSERT INTO `staffs` (`id`, `staff_name`, `is_deleted`) VALUES
+(1, 'MJ', 0),
+(2, 'Zyn', 0),
+(3, 'Pearl', 0);
 
 -- --------------------------------------------------------
 
@@ -102,8 +154,7 @@ INSERT INTO `users` (`id`, `username`, `password`, `email`, `role`, `created_at`
 --
 ALTER TABLE `archive_history`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `request_id` (`request_id`),
-  ADD KEY `actioned_by` (`actioned_by`);
+  ADD KEY `archive_history_ibfk_1` (`actioned_by`);
 
 --
 -- Indexes for table `audit_trail`
@@ -118,6 +169,12 @@ ALTER TABLE `audit_trail`
 ALTER TABLE `requests`
   ADD PRIMARY KEY (`id`),
   ADD KEY `requester_id` (`requester_id`);
+
+--
+-- Indexes for table `staffs`
+--
+ALTER TABLE `staffs`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `users`
@@ -149,10 +206,16 @@ ALTER TABLE `requests`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `staffs`
+--
+ALTER TABLE `staffs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
@@ -162,20 +225,19 @@ ALTER TABLE `users`
 -- Constraints for table `archive_history`
 --
 ALTER TABLE `archive_history`
-  ADD CONSTRAINT `archive_history_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `requests` (`id`),
-  ADD CONSTRAINT `archive_history_ibfk_2` FOREIGN KEY (`actioned_by`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `archive_history_ibfk_1` FOREIGN KEY (`actioned_by`) REFERENCES `staffs` (`id`);
 
 --
 -- Constraints for table `audit_trail`
 --
 ALTER TABLE `audit_trail`
-  ADD CONSTRAINT `audit_trail_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `audit_trail_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `staffs` (`id`);
 
 --
 -- Constraints for table `requests`
 --
 ALTER TABLE `requests`
-  ADD CONSTRAINT `requests_ibfk_1` FOREIGN KEY (`requester_id`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `requests_ibfk_1` FOREIGN KEY (`requester_id`) REFERENCES `staffs` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
