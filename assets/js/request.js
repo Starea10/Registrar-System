@@ -47,9 +47,21 @@ async function performSearch() {
 
     try {
         const response = await fetch(fetchUrl);
+        if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+        }
         const data = await response.json();
 
         tableBody.innerHTML = data.html;
+
+        // View/Update-Claiming-Date modals for the rows just loaded. These
+        // live outside the table (a <tbody>'s innerHTML can't safely hold
+        // modal markup), in #ajaxModalsContainer.
+        const modalsContainer = document.getElementById('ajaxModalsContainer');
+        if (modalsContainer) {
+            modalsContainer.innerHTML = data.modals || '';
+        }
+
         if (paginationInfo) {
             paginationInfo.innerHTML = data.info;
         }
@@ -58,9 +70,20 @@ async function performSearch() {
         }
     } catch (error) {
         console.error('Error during live search:', error);
-        tableBody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">Error loading results.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">Error loading results. Please try again.</td></tr>';
     }
 }
+
+// The set of "color" classes a status select can have. Kept separate from
+// the always-present "status-dropdown" / "status-select" classes so that
+// updating the color never accidentally strips those two (see below).
+const STATUS_COLOR_CLASSES = [
+    'status-pending',
+    'status-processing',
+    'status-for_signature',
+    'status-for_release',
+    'status-released'
+];
 
 /**
  * Handle AJAX status updates
@@ -98,8 +121,16 @@ async function handleStatusUpdate(select) {
                     row.remove();
                 }, 500);
             } else {
-                // Update color class
-                select.className = select.className.replace(/status-\w+/g, '');
+                // Update color class. Previously this used a regex
+                // (/status-\w+/g) that also matched and removed the
+                // "status-dropdown" and "status-select" classes -- since
+                // those start with "status-" too -- which both broke the
+                // dropdown's color styling (it depends on
+                // .status-dropdown.status-<value> together) and silently
+                // stopped this dropdown from responding to further changes,
+                // since the delegated listener below only reacts to
+                // elements with the "status-select" class.
+                select.classList.remove(...STATUS_COLOR_CLASSES);
                 select.classList.add('status-' + select.value);
                 // Update the original status so reverting works correctly next time
                 select.dataset.originalStatus = select.value;
@@ -110,6 +141,7 @@ async function handleStatusUpdate(select) {
         }
     } catch (error) {
         console.error('Status update error:', error);
+        console.log(error);
         showAlert('A network error occurred. Please try again.', 'danger');
         select.value = originalStatus; // Revert on network error
     }
@@ -132,14 +164,126 @@ function toggleCertificationInput() {
     const checkbox = document.getElementById('certification');
     const input = document.getElementById('certification_type');
     
+    const quantityId = `certification_quantity`;
+    const dateId = `certification_claiming_date`;
+
+    const quantity = document.getElementById(quantityId);
+    const date = document.getElementById(dateId);
+
     if (checkbox && input) {
         if (checkbox.checked) {
             input.style.display = 'block';
             input.required = true;
+
+            quantity.disabled = false;
+            date.disabled = false;
+
+            quantity.required = true;
+            date.required = true;
+
+            quantity.value = 1;
         } else {
             input.style.display = 'none';
             input.required = false;
             input.value = '';
+            
+            quantity.disabled = true;
+            date.disabled = true;
+
+            quantity.required = false;
+            date.required = false;
+
+            quantity.value = '';
+            date.value = '';
+
+        }
+    }
+}
+
+function toggleProgramOthersInput(){
+    const program = document.getElementById('program');
+    const input = document.getElementById('others_program');
+
+    if (program.value === "others" && input) {
+            input.style.display = 'block';
+            input.required = true;
+    } else {
+            input.style.display = 'none';
+            input.required = false;
+            input.value = '';
+
+    }
+}
+
+function togglePurposeOthersInput() {
+    const purpose = document.getElementById('purpose');
+    const input = document.getElementById('others_purpose');
+    
+
+    if (purpose.value === "Others" && input) {
+        
+            input.style.display = 'block';
+            input.required = true;
+    } else {
+            input.style.display = 'none';
+            input.required = false;
+            input.value = '';
+
+    }
+    
+}
+
+// Clickable table rows on the request slip form
+document.querySelectorAll('.clickable-row').forEach(row => {
+  row.addEventListener('click', function(event) {
+    // Find the checkbox inside this row
+    const checkbox = this.querySelector('.row-checkbox');
+    
+    // Prevent double-toggle if the user clicked the checkbox directly
+    if (event.target !== checkbox) {
+      checkbox.checked = !checkbox.checked;
+    }
+})
+})
+/**
+ * Toggle others input field visibility
+ */
+function toggleOthersInput() {
+    const checkbox = document.getElementById('others');
+    const input = document.getElementById('others_type');
+    
+    const quantityId = `others_quantity`;
+    const dateId = `others_claiming_date`;
+
+    const quantity = document.getElementById(quantityId);
+    const date = document.getElementById(dateId);
+
+
+    if (checkbox && input) {
+        if (checkbox.checked) {
+            input.style.display = 'block';
+            input.required = true;
+
+            quantity.disabled = false;
+            date.disabled = false;
+
+            quantity.required = true;
+            date.required = true;
+
+            quantity.value = 1;
+        } else {
+            input.style.display = 'none';
+            input.required = false;
+            input.value = '';
+
+            quantity.disabled = true;
+            date.disabled = true;
+
+            quantity.required = false;
+            date.required = false;
+
+            quantity.value = '';
+            date.value = '';
         }
     }
 }
@@ -166,6 +310,57 @@ function validateNewRequestForm(e) {
     }
 }
 
+function toggleQuantityAndDateInput(element) {
+    const quantityId = `${element}_quantity`;                                    
+    const dateId = `${element}_claiming_date`;
+
+    const checkbox = document.getElementById(element);
+
+    const quantity = document.getElementById(quantityId);
+    const date = document.getElementById(dateId);
+
+    
+    if (checkbox) {
+        if (checkbox.checked) {
+            quantity.disabled = false;
+            date.disabled = false;
+
+            quantity.required = true;
+            date.required = true;
+
+            quantity.value = 1;
+        } else {
+            quantity.disabled = true;
+            date.disabled = true;
+
+            quantity.required = false;
+            date.required = false;
+
+            quantity.value = '';
+            date.value = '';
+        }
+    }
+}
+
+function toggleContactInput(){
+
+    const contact_choice = document.getElementById('contact_choice');
+    const input = document.getElementById('contact');
+
+
+    if (contact_choice.value === 'email' && input) {
+        input.placeholder = 'Enter email address';
+        input.title = 'Please enter a valid email address (e.g., user@example.com)';
+        input.removeAttribute('pattern');
+        input.inputMode = 'email';
+    }
+    else{
+        input.placeholder = 'Enter contact number';
+        input.title = 'Please enter numbers only';
+        input.pattern = '[0-9]*';
+        input.inputMode = 'numeric';
+    }
+}
 /**
  * Initialize all event listeners and functionality
  */

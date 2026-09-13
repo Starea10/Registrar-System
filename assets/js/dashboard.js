@@ -329,6 +329,10 @@ function showReleasedModal() {
     }, 300);
 }
 
+function redirectToRequestPage(pageStatus){
+    window.location.href = "requests.php?status=" + pageStatus;
+}
+
 /**
  * Switch tabs in modal
  */
