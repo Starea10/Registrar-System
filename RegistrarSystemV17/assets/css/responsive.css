@@ -1,0 +1,198 @@
+/* =====================================================================
+   ADMIN MOBILE POLISH — loaded LAST on every admin page so these rules
+   win over the (legacy) inline <style> blocks by cascade order only.
+   ===================================================================== */
+
+/* Always reserve space for the vertical scrollbar, even on pages/tabs
+   short enough not to need one (e.g. Resources with few rows). Without
+   this, the scrollbar appearing/disappearing changes the viewport's
+   usable width, which reflows the col-md-2/col-md-10 Bootstrap grid
+   and makes the sidebar visibly shift width between pages. */
+html {
+    overflow-y: scroll;
+}
+
+/* Lock body scroll while the mobile drawer is open */
+body.sidebar-open {
+    overflow: hidden;
+}
+
+/* Shared mobile admin navigation drawer. */
+@media (max-width: 767.98px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 280px;
+        height: 100vh;
+        min-height: 100vh;
+        overflow-y: auto;
+        z-index: 1060;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+        transition: left 0.3s ease;
+    }
+
+    .sidebar.show {
+        left: 0;
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1055;
+    }
+
+    .sidebar-overlay.show {
+        display: block;
+    }
+
+    .row > .mobile-menu-toggle {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        display: inline-flex;
+        flex: 0 0 46px;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        max-width: 46px;
+        height: 46px;
+        padding: 0;
+        border: 0;
+        border-radius: 10px;
+        background: #198754;
+        color: #fff;
+        cursor: pointer;
+        z-index: 1070;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+
+    .mobile-menu-toggle i {
+        font-size: 1.2rem;
+        transition: transform 0.3s ease;
+    }
+
+    .mobile-menu-toggle.active i {
+        transform: rotate(90deg);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .sidebar {
+        width: 260px;
+    }
+}
+
+/* Keep the staff request slip inside the viewport on tablets and phones. */
+@media (max-width: 991.98px) {
+    #newRequestModal .modal-dialog {
+        width: calc(100% - 1rem);
+        max-width: calc(100% - 1rem);
+        margin: 0.5rem auto;
+    }
+
+    #newRequestModal .modal-content {
+        overflow: hidden;
+    }
+
+    #newRequestModal .modal-body {
+        overflow-x: hidden;
+        padding: 1rem;
+    }
+
+    #newRequestModal .request-slip-table-scroll {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+    }
+
+    #newRequestModal .table {
+        width: max-content;
+        min-width: 680px;
+        table-layout: auto;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    #newRequestModal .table th,
+    #newRequestModal .table td {
+        padding: 0.5rem 0.25rem;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    #newRequestModal .table th:nth-child(1),
+    #newRequestModal .table td:nth-child(1) { width: 52px; }
+
+    #newRequestModal .table th:nth-child(2),
+    #newRequestModal .table td:nth-child(2) { min-width: 270px; }
+
+    #newRequestModal .table th:nth-child(3),
+    #newRequestModal .table td:nth-child(3) { min-width: 90px; }
+
+    #newRequestModal .table th:nth-child(4),
+    #newRequestModal .table td:nth-child(4) { min-width: 220px; }
+
+    #newRequestModal .table input[type="number"],
+    #newRequestModal .table input[type="date"] {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 0.45rem 0.35rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    /* Prevent iOS Safari auto-zoom when focusing form fields
+       (it zooms whenever an input's font-size is below 16px) */
+    input,
+    select,
+    textarea,
+    .form-control,
+    .form-select,
+    .input-group .form-control {
+        font-size: 16px;
+    }
+
+    /* Keep the mobile drawer links easy to hit */
+    .sidebar a {
+        padding: 14px 20px;
+    }
+
+    /* Pagination wraps instead of overflowing the viewport */
+    .pagination {
+        flex-wrap: wrap;
+        row-gap: 6px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    /* Page title + primary action stack neatly on phones */
+    .d-flex.justify-content-between.align-items-center.mb-4 {
+        align-items: flex-start !important;
+    }
+}
+
+/* Comfortable touch targets on any touch-first device */
+@media (hover: none) and (pointer: coarse) {
+    .btn {
+        min-height: 42px;
+    }
+
+    .page-link {
+        min-width: 42px;
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Keep in-table status dropdowns compact but still tappable */
+    .status-dropdown {
+        min-height: 34px;
+    }
+}

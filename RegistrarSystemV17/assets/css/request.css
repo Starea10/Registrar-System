@@ -1,0 +1,195 @@
+/*=====================================
+REQUEST FORM HEADER
+=====================================*/
+.container.nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
+.container.nav .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; color: #ffffff; font-size: 1.2rem; }
+.container.nav .logo img { width: 40px; }
+.container.nav .back { font-weight: 600; color: #ffffff; transition: var(--transition); }
+.container.nav .back:hover { color: var(--secondary); } /* was green-on-green */
+
+.page-title { text-align: center; padding: 40px 0 20px; }
+.page-title h1 { color: var(--primary); margin-bottom: 10px; font-family: 'Merriweather', serif; font-size: 2.5rem; }
+.page-title p { color: var(--gray); }
+
+/*=====================================
+STEPPER
+=====================================*/
+.stepper {
+    display: flex; align-items: center; justify-content: center;
+    max-width: 600px; margin: 0 auto 50px; text-align: center;
+}
+.step { position: relative; z-index: 2; width: 130px; }
+.circle {
+    width: 45px; height: 45px; border-radius: 50%; background: white;
+    border: 3px solid var(--border); display: flex; align-items: center;
+    justify-content: center; margin: 0 auto 10px; font-weight: bold;
+    color: var(--gray); transition: var(--transition);
+}
+.step p { font-size: 0.85rem; color: var(--gray); font-weight: 500; transition: var(--transition); }
+
+.step.active .circle { border-color: var(--primary); background: var(--primary); color: white; }
+.step.active p { color: var(--primary); font-weight: 700; }
+
+.step.completed .circle { border-color: var(--secondary); background: var(--secondary); color: var(--text); }
+.step.completed p { color: var(--text); font-weight: 700; }
+
+.line { flex: 1; height: 4px; background: var(--border); margin-top: -30px; z-index: 1; transition: var(--transition); }
+.step.completed + .line { background: var(--secondary); }
+
+/*=====================================
+FORM LAYOUT
+=====================================*/
+#requestForm { background: white; max-width: 800px; margin: 0 auto 80px; padding: 40px; border-radius: var(--radius); box-shadow: var(--shadow); }
+.form-step { display: none; animation: fadeUp 0.4s ease; }
+.form-step.active { display: block; }
+.form-step h2 { color: var(--primary); font-size: 1.6rem; margin-bottom: 30px; text-align: left; border-bottom: 2px solid var(--section); padding-bottom: 15px; }
+
+/* minmax(0,1fr): a plain 1fr can't shrink below a <select>'s widest option, which pushed the form sideways on phones */
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.input-group { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.input-group.full { grid-column: 1 / -1; }
+.input-group label { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+.input-group input, .input-group select, .input-group textarea {
+    padding: 14px; border: 1px solid var(--border); border-radius: 10px;
+    font-family: inherit; font-size: 1rem; transition: var(--transition); background: var(--background);
+}
+.input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+    outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 102, 51, 0.1);
+}
+.input-group input.error { border-color: #E74C3C; background: #FDEDEC; }
+.input-group input.success { border-color: var(--primary); }
+
+/*=====================================
+ACTIONS & SUMMARY
+=====================================*/
+.buttons { display: flex; justify-content: flex-end; gap: 15px; margin-top: 40px; }
+.buttons button { padding: 14px 30px; border-radius: 999px; font-weight: 600; font-size: 1rem; transition: var(--transition); }
+.next, .submit { background: var(--secondary); color: var(--text); }
+.next:hover, .submit:hover { background: var(--secondary-dark); transform: translateY(-2px); }
+.previous { background: transparent; border: 2px solid var(--border); color: var(--gray); }
+.previous:hover { border-color: var(--gray); color: var(--text); }
+
+.confirmation { text-align: center; }
+.summary { background: var(--section); padding: 20px; border-radius: 10px; margin: 20px 0; text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.summary p { font-size: 0.95rem; }
+.checkbox { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; cursor: pointer; color: var(--text); }
+
+.success-card { text-align: center; padding: 40px 20px; }
+.success-icon {
+    width: 80px; height: 80px; background: var(--secondary); color: var(--text);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 40px; margin: 0 auto 20px;
+}
+.hidden {
+    display: none;
+}
+
+@media(max-width: 768px) {
+    .grid-2 { grid-template-columns: minmax(0, 1fr); }
+    .summary { grid-template-columns: 1fr; }
+
+    /* Compact horizontal stepper instead of a tall vertical one, so the form
+       starts higher up the screen. */
+    .stepper { align-items: flex-start; margin-bottom: 30px; }
+    .step { width: 84px; }
+    .step p { font-size: 0.75rem; line-height: 1.3; }
+    .circle { width: 38px; height: 38px; }
+    .line { margin-top: 17px; }   /* centre of the 38px circle */
+}
+
+@media(max-width: 576px) {
+    #requestForm { padding: 24px 16px; margin: 0 0 40px; }
+    .page-title h1 { font-size: 1.8rem; }
+    .page-title { padding: 25px 0 15px; }
+    .buttons { flex-direction: column-reverse; } /* primary action (Next / Submit) on top */
+    .buttons button { width: 100%; }
+    .success-icon { width: 64px; height: 64px; font-size: 32px; }
+    .requirements-section { padding: 18px; }
+}
+
+.requirements-section{
+    margin-top:30px;
+    padding:25px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#fafafa;
+}
+
+.requirements-section h3{
+    color:var(--primary);
+    margin-bottom:8px;
+}
+
+.requirements-section p{
+    margin-bottom:20px;
+    color:var(--gray);
+}
+
+/*=====================================
+FORM CONTROLS: touch targets & wrapping
+=====================================*/
+.checkbox input[type="checkbox"],
+.input-group input[type="checkbox"],
+.input-group input[type="radio"] { width: 20px; height: 20px; padding: 0; flex: none; accent-color: var(--primary); }
+.input-group .checkbox { justify-content: flex-start; margin-top: 0; }
+.input-group select { text-overflow: ellipsis; }
+#program { width: 100%; text-overflow: clip; }
+.summary p { overflow-wrap: anywhere; }
+
+/*=====================================
+TEXT FIELDS & DROPDOWNS (mobile-friendly)
+=====================================*/
+/* The <section class="form-step"> / "doc-requirements" blocks were inheriting
+   the global `section { padding: 80px 0 }` from style.css, which is where the
+   big empty gaps above and below every step came from. */
+#requestForm section { padding: 0; }
+#requestForm .doc-requirements { margin-top: 24px; }
+#requestForm .doc-requirements h3 { color: var(--primary); margin-bottom: 16px; }
+
+/* Drop the browser's own styling so fields look the same on iPhone, Android
+   and desktop (iOS Safari otherwise adds an inner shadow to inputs and a
+   gradient "pill" to selects), and keep every field at a comfortable tap
+   height with 16px text (which also stops iOS zooming in on focus). */
+.input-group input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.input-group select,
+.input-group textarea {
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 48px;
+    font-size: 16px;
+    border-radius: 10px;
+}
+.input-group textarea { min-height: 96px; resize: vertical; }
+
+/* Dropdowns get their own arrow, since appearance:none removes the native one */
+.input-group select {
+    padding-right: 44px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M3 6l5 5 5-5' fill='none' stroke='%23006633' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 16px;
+    cursor: pointer;
+}
+/* Dropdowns had no invalid state at all (the .error rule above only matches <input>) */
+.input-group select.error,
+.input-group textarea.error { border-color: #E74C3C; background-color: #FDEDEC; }
+
+/* File pickers: a real, tappable button instead of the tiny default one */
+.input-group input[type="file"] { min-height: 0; padding: 10px; font-size: 0.9rem; cursor: pointer; }
+.input-group input[type="file"]::file-selector-button {
+    margin-right: 12px;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--secondary);
+    color: var(--text);
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* Spacing inside the "Required Documents" block (these groups aren't in the grid) */
+#requestForm .doc-requirements .input-group { margin-bottom: 18px; }
+#requestForm .radio-inline { display: flex; align-items: center; gap: 10px; min-height: 40px; font-weight: 500; }
+#requestForm .input-group .checkbox { min-height: 40px; }
+#requestForm .doc-reminder { margin-top: 8px; margin-bottom: 18px; font-size: 0.9rem; color: var(--gray); }
